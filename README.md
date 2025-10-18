@@ -1,2 +1,2 @@
 # yallaEat
-A modern restaurant reservation and management system
+A modern restaurant reservation and management system.
