@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 
 // View all users
@@ -65,6 +65,11 @@ const disableCustomer = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(id, { disabled: true }, { new: true });
 
     if (!updatedUser) return res.status(404).json({ message: 'Customer not found' });
+        // Only allow disabling customers ,others will be delt with in another way
+    if (user.role !== 'customer') {
+      return res.status(403).json({ message: 'Only customers can be disabled' });
+    }
+
     res.status(200).json({ message: 'Customer disabled successfully', updatedUser });
   } catch (error) {
     res.status(500).json({ message: 'Error disabling customer', error: error.message });
