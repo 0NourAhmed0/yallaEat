@@ -21,7 +21,7 @@ app.use(
 
 //routes
 const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/user"); // Staff & admin routes
+const userRoutes = require("./routes/userRoutes"); // Staff & admin routes
 
 
 //routes middleware
