@@ -244,4 +244,10 @@ try {
 };
 
 
-module.exports = { authController, sendOtpEmail ,updateProfile, deleteProfile };
+
+module.exports = {
+  ...authController, 
+  sendOtpEmail,
+  updateProfile,
+  deleteProfile,
+};
