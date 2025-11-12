@@ -22,11 +22,13 @@ app.use(
 //routes
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes"); // Staff & admin routes
+const menuItemRoutes = require("./routes/menuItemRoutes"); //menuitem routes
 
 
 //routes middleware
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/menu-items", menuItemRoutes);
 
 
 
