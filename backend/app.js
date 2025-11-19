@@ -37,13 +37,9 @@ app.get("/", (req, res) => {
   res.send("YallaEat API is running ");
 });
 
-
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
-
-
-
 
 const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.DB_URL)
