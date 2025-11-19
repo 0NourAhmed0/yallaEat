@@ -1,16 +1,40 @@
 const Order = require('../models/order');
+const MenuItem = require('../models/menuItem');
 const createOrder = async (req, res) => {
   try {
-    const { items, totalPrice } = req.body;
+    const { items } = req.body;
+    const verifiedItems = await Promise.all(items.map(async (item) => {
+      const product = await MenuItem.findById(item.menuItem);
+      if (!product) {
+        throw new Error(`Menu item not found with ID: ${item.menuItem}`);
+      }
+      return {
+        menuItem: product._id,
+        quantity: item.quantity,
+        price: product.price
+      };
+    }));
+    const calculatedTotal = verifiedItems.reduce((acc, item) => {
+      return acc + (item.price * item.quantity);
+    }, 0);
     const newOrder = new Order({
       user: req.user._id,
-      items,
-      totalPrice
+      items: verifiedItems,
+      totalPrice: calculatedTotal,
+      paymentMethod: req.body.paymentMethod || 'Cash'
     });
     await newOrder.save();
-    res.status(201).json({ success: true, message: "Order placed successfully", order: newOrder });
+    res.status(201).json({ 
+      success: true, 
+      message: "Order placed successfully", 
+      order: newOrder 
+    });
   } catch (error) {
-    res.status(400).json({ success: false, message: "Failed to place order", error: error.message });
+    res.status(400).json({ 
+      success: false, 
+      message: "Failed to place order", 
+      error: error.message 
+    });
   }
 };
 const getMyOrders = async (req, res) => {
