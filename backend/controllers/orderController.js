@@ -1,6 +1,7 @@
 const Order = require('../models/order');
 const MenuItem = require('../models/menuItem');
 const createOrder = async (req, res) => {
+  const shortId = Math.floor(1000 + Math.random() * 9000);
   try {
     const { items } = req.body;
     const verifiedItems = await Promise.all(items.map(async (item) => {
@@ -21,7 +22,8 @@ const createOrder = async (req, res) => {
       user: req.user._id,
       items: verifiedItems,
       totalPrice: calculatedTotal,
-      paymentMethod: req.body.paymentMethod || 'Cash'
+      paymentMethod: req.body.paymentMethod || 'Cash',
+      orderNumber: `ORD-${shortId}`
     });
     await newOrder.save();
     res.status(201).json({ 
