@@ -3,7 +3,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-
 const app = express();
 
 // Middlewares
@@ -23,6 +22,7 @@ app.use(
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes"); // Staff & admin routes
 const menuItemRoutes = require("./routes/menuItemRoutes"); //menuitem routes
+const orderRoutes = require("./routes/orderRoutes"); // order routes
 const feedbackRoutes = require("./routes/feedbackRoutes");
 
 
@@ -30,6 +30,7 @@ const feedbackRoutes = require("./routes/feedbackRoutes");
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/menu-items", menuItemRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/api/feedback", feedbackRoutes);
 
 
@@ -40,12 +41,9 @@ app.get("/", (req, res) => {
   res.send("YallaEat API is running ");
 });
 
-
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
-
-
 
 const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.DB_URL)
