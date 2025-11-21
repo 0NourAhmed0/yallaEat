@@ -1,7 +1,18 @@
 const Order = require('../models/order');
 const MenuItem = require('../models/menuItem');
+
+//for the emailNotifier and observer pattern
+const { Subject } = require('../observers/observer');
+const EmailNotifier = require('../observers/emailNotifier');
+
 const createOrder = async (req, res) => {
   const shortId = Math.floor(1000 + Math.random() * 9000);
+   // Setup el Observer
+  const orderCreated = new Subject();
+  const emailNotifier = new EmailNotifier();
+  orderCreated.subscribe(emailNotifier);
+  //////
+  
   try {
     const { items } = req.body;
     const verifiedItems = await Promise.all(items.map(async (item) => {
@@ -26,6 +37,18 @@ const createOrder = async (req, res) => {
       orderNumber: `ORD-${shortId}`
     });
     await newOrder.save();
+
+    // Notify observers AFTER order creation
+    orderCreated.notify({
+      id: newOrder._id,
+      orderNumber: newOrder.orderNumber,
+      userEmail: req.user.email,
+      userName: req.user.name,
+      status: "Created"
+    });
+    //////
+
+
     res.status(201).json({ 
       success: true, 
       message: "Order placed successfully", 
@@ -67,10 +90,29 @@ const updateOrderStatus = async (req, res) => {
       req.params.id,
       { status }, 
       { new: true, runValidators: true }
-    );
+    ).populate('user', 'name email'); // populate customer for the email and observer
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found" });
     }
+
+    ////for the emailNotifier and observer pattern
+    order.status = status;
+    await order.save();
+
+    // Setup Observer
+    const orderStatusChanged = new Subject();
+    const emailNotifier = new EmailNotifier();
+    orderStatusChanged.subscribe(emailNotifier);
+
+    // Only send emails for certain statuses
+    if (status === "Ready" || status === "Cancelled") {
+      orderStatusChanged.notify({
+        orderNumber: order.orderNumber,
+        userEmail: order.user.email,
+        userName: order.user.name,
+        status: status
+      });
+    }    
     res.status(200).json({ success: true, message: "Order status updated", order });
   } catch (error) {
     res.status(400).json({ success: false, message: "Failed to update status", error: error.message });
