@@ -33,7 +33,9 @@ app.use("/api/menu-items", menuItemRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/feedback", feedbackRoutes);
 
-
+// cache routes
+// const cacheRoutes = require('./routes/cacheRoutes');
+// app.use('/api/admin/cache', cacheRoutes);
 
 
 // endpoint
