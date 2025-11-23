@@ -43,9 +43,11 @@ const cancelReservation = async (req, res) => {
 const getReservation = async (req, res) => {
   try {
     const reservation = await Reservation.findOne({ reservation_id: req.params.id })
-      .populate("customer_id")
-      .populate("table_id")
-      .populate("staff_id");
+      .populate("customer_id");
+
+    if (!reservation) {
+      return res.status(404).json({ message: "Reservation not found" });
+    }
 
     res.json(reservation);
   } catch (error) {
