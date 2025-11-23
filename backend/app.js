@@ -35,7 +35,9 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/reservations", reservationRoutes);
 
-
+// cache routes
+// const cacheRoutes = require('./routes/cacheRoutes');
+// app.use('/api/admin/cache', cacheRoutes);
 
 
 // endpoint
