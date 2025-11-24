@@ -5,6 +5,7 @@ const MenuItem = require('../models/menuItem');
 const { Subject } = require('../observers/observer');
 const EmailNotifier = require('../observers/emailNotifier');
 
+//order payed in cash:
 const createOrder = async (req, res) => {
   const shortId = Math.floor(1000 + Math.random() * 9000);
    // Setup el Observer
