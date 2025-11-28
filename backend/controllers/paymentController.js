@@ -14,44 +14,45 @@ const EmailNotifier = require("../observers/emailNotifier");
  */
 exports.createPaymentIntent = async (req, res) => {
   try {
-    const { items } = req.body;
+    const { orderId } = req.body;
 
-    // Verify items & calculate total
-    const verifiedItems = await Promise.all(
-      items.map(async (item) => {
-        const product = await MenuItem.findById(item.menuItem);
-        if (!product) throw new Error(`Menu item not found: ${item.menuItem}`);
-        return {
-          menuItem: product._id,
-          quantity: item.quantity,
-          price: product.price,
-        };
-      })
-    );
+    // 1. Verify order
+    const order = await Order.findById(orderId).populate("items.menuItem");
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
-    const totalPrice = verifiedItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
+    const amount = Math.round(order.totalPrice * 100); // convert to cents
 
+    // 2. Create payment intent for this ORDER
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(totalPrice * 100), // Stripe uses cents
+      amount,
       currency: "usd",
-      metadata: {
+      payment_method_types: ["card"],     // only card
+      confirm: true,                       // CAREFULLLLLLL this will change to false when we do front end , do NOT forget!!!!!!
+      payment_method: "pm_card_visa",  
+        metadata: {
+        orderId: order._id.toString(),
         userId: req.user._id.toString(),
-        items: JSON.stringify(items), // needed for webhook
       },
+      // automatic_payment_methods: {
+      // enabled: true,
+      // allow_redirects: "never",
+   // },
+
     });
 
     res.status(200).json({
       clientSecret: paymentIntent.client_secret,
-      amount: totalPrice,
+      amount: order.totalPrice,
     });
+
   } catch (error) {
     console.error("Stripe PaymentIntent Error:", error);
     res.status(400).json({ message: error.message });
   }
 };
+
 
 /**
  * Stripe Webhook to create order after payment succeeds
@@ -68,62 +69,44 @@ exports.webhook = async (req, res) => {
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    console.error("Webhook signature verification failed:", err.message);
+    console.error("Webhook verification failed:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  if (event.type === "payment_intent.succeeded") {
-    const pi = event.data.object;
-    const userId = pi.metadata.userId;
-    const items = JSON.parse(pi.metadata.items);
+if (event.type === "payment_intent.succeeded") {
+  const pi = event.data.object;
+  const orderId = pi.metadata.orderId;
 
-    try {
-      // Verify items & calculate total
-      const verifiedItems = await Promise.all(
-        items.map(async (item) => {
-          const product = await MenuItem.findById(item.menuItem);
-          return {
-            menuItem: product._id,
-            quantity: item.quantity,
-            price: product.price,
-          };
-        })
-      );
+  try {
+    const order = await Order.findById(orderId);
 
-      const totalPrice = verifiedItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      );
+    if (!order) return console.error("Order not found in webhook");
 
-      const shortId = Math.floor(1000 + Math.random() * 9000);
+    order.status = "Preparing";          // update workflow status
+    order.paymentStatus = "paid";
+    order.paymentMethod = "Stripe";
+    order.paymentIntentId = pi.id;
 
-      const newOrder = new Order({
-        user: userId,
-        items: verifiedItems,
-        totalPrice,
-        paymentMethod: "Stripe",
-        orderNumber: `ORD-${shortId}`,
-        status: "Pending",
-      });
+    await order.save();
 
-      await newOrder.save();
+    // Notify via email
+    const subject = new Subject();
+    const emailNotifier = new EmailNotifier();
+    subject.subscribe(emailNotifier);
+    subject.notify({
+      orderNumber: order.orderNumber,
+      userEmail: pi.receipt_email || "user@example.com",
+      userName: "Customer",
+      status: "Paid",
+    });
 
-      // Observer / Email
-      const orderCreated = new Subject();
-      const emailNotifier = new EmailNotifier();
-      orderCreated.subscribe(emailNotifier);
-      orderCreated.notify({
-        orderNumber: newOrder.orderNumber,
-        userEmail: pi.receipt_email || "user@example.com",
-        userName: "Customer",
-        status: "Created",
-      });
+    console.log("Order marked as paid:", order.orderNumber);
 
-      console.log("Order created via Stripe webhook:", newOrder.orderNumber);
-    } catch (error) {
-      console.error("Error creating order from webhook:", error);
-    }
+  } catch (error) {
+    console.error("Webhook order update error:", error.message);
   }
+}
+
 
   res.json({ received: true });
 };
