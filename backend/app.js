@@ -4,8 +4,14 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const app = express();
-
+const { webhook } = require("./controllers/paymentController");
 // Middlewares
+//for the online payment stripe
+app.use(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" })
+);
+//end stripe middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(
@@ -25,6 +31,13 @@ const menuItemRoutes = require("./routes/menuItemRoutes"); //menuitem routes
 const orderRoutes = require("./routes/orderRoutes"); // order routes
 const feedbackRoutes = require("./routes/feedbackRoutes");
 const reservationRoutes = require("./routes/reservationRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+
+app.post(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" }),  // important!
+  webhook
+);
 
 
 //routes middleware
@@ -34,6 +47,7 @@ app.use("/api/menu-items", menuItemRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/reservations", reservationRoutes);
+app.use("/api/payments", paymentRoutes);
 
 // cache routes
 // const cacheRoutes = require('./routes/cacheRoutes');
