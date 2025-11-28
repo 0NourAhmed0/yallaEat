@@ -97,13 +97,15 @@ const authController = {
 
       res.status(200).json({
         message: "Login successful",
-        token,
+        
         user: {
           id: user._id,
           name: user.name,
           email: user.email,
           role: user.role,
         },
+
+        token,
       });
     } catch (error) {
       res.status(500).json({ message: "Login failed", error: error.message });
@@ -210,11 +212,15 @@ const updateProfile = async(req,res)=> {
 try {
 
     const updates = req.body;
+      
+    if (updates.password) {
+        updates.password = await bcrypt.hash(updates.password, 10);
+      }
 
     const user = await User.findByIdAndUpdate(req.user._id, updates, {
       new: true,
       runValidators: true,
-    });
+    }).select("-password");
 
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
