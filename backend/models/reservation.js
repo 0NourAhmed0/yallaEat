@@ -10,11 +10,11 @@ const reservationSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  // table_id: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "Table",
-  //   required: true,
-  // },
+  table_number: {
+    type: Number,
+    enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    required: true,
+  },
   staff_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Staff",
@@ -34,7 +34,7 @@ const reservationSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "confirmed", "cancelled" , "rejected"],
+    enum: ["pending", "confirmed", "cancelled", "rejected"],
     default: "pending",
   },
 });
