@@ -21,6 +21,7 @@ class EmailNotifier extends Observer {
             text = `Hello ${order.userName},\n\nYour order #${order.orderNumber} has been placed successfully.\n\nThank you!`;
             html = `<p>Hello ${order.userName},</p>
                     <p>Your order <strong>#${order.orderNumber}</strong> has been placed successfully.</p>
+                    <p>the estimated ready time:#${order.estimatedReadyTime} minutes , the total price is #${order.totalPrice}</p>
                     <p>Thank you!</p>`;
         } else if (order.status === "Ready") {
             subject = `Your Order #${order.orderNumber} is Ready!`;

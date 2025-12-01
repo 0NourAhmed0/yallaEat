@@ -25,8 +25,7 @@ const getAllReservations = async (req, res) => {
     if (table_number) filter.table_number = parseInt(table_number);
 
     const reservations = await Reservation.find(filter)
-      .populate("customer_id", "name email phone")
-      .populate("staff_id", "name email")
+      .populate("customer_id", "name email")
       .sort({ reservation_date: 1, reservation_time: 1 });
 
     res.json({
@@ -42,7 +41,6 @@ const getReservation = async (req, res) => {
   try {
     const reservation = await Reservation.findOne({ reservation_id: req.params.id })
       .populate("customer_id")
-      .populate("staff_id");
 
     if (!reservation) {
       return res.status(404).json({ message: "Reservation not found" });
@@ -57,7 +55,6 @@ const getReservation = async (req, res) => {
 const getCustomerReservations = async (req, res) => {
   try {
     const reservations = await Reservation.find({ customer_id: req.user._id })
-      .populate("staff_id", "name email")
       .sort({ reservation_date: -1, reservation_time: -1 });
 
     res.json({
