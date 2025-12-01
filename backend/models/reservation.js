@@ -17,7 +17,7 @@ const reservationSchema = new mongoose.Schema({
   },
   staff_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Staff",
+    ref: "User",
     default: null
   },
   reservation_date: {

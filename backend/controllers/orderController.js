@@ -1,6 +1,8 @@
 const Order = require('../models/order');
 const MenuItem = require('../models/menuItem');
 
+const Delivery = require('../models/delivery'); // add this line
+
 //for the emailNotifier and observer pattern
 const { Subject } = require('../observers/observer');
 const EmailNotifier = require('../observers/emailNotifier');
@@ -30,12 +32,20 @@ const createOrder = async (req, res) => {
     const calculatedTotal = verifiedItems.reduce((acc, item) => {
       return acc + (item.price * item.quantity);
     }, 0);
+    const calculateTime =verifiedItems.reduce((acc, item) => {
+      return acc + (10 * item.quantity);
+    }, 0);
+
     const newOrder = new Order({
       user: req.user._id,
       items: verifiedItems,
       totalPrice: calculatedTotal,
       paymentMethod: req.body.paymentMethod || 'Cash',
-      orderNumber: `ORD-${shortId}`
+      orderNumber: `ORD-${shortId}`,
+      estimatedReadyTime: calculateTime,
+      isDelivery: req.body.isDelivery || false,
+      deliveryStatus: req.body.isDelivery ? 'pending' : null, // null if not delivery
+      progress: req.body.isDelivery ? 0 : null, 
     });
     await newOrder.save();
 
@@ -45,7 +55,10 @@ const createOrder = async (req, res) => {
       orderNumber: newOrder.orderNumber,
       userEmail: req.user.email,
       userName: req.user.name,
-      status: "Created"
+      status: "Created",
+      estimatedReadyTime: calculateTime,
+      totalPrice: calculatedTotal,
+
     });
     //////
 
@@ -119,10 +132,73 @@ const updateOrderStatus = async (req, res) => {
     res.status(400).json({ success: false, message: "Failed to update status", error: error.message });
   }
 };
+/////delivery
+
+const DELIVERY_STEPS = [
+  { deliveryStatus: "processing", progress: 20 },
+  { deliveryStatus: "on_the_way", progress: 50 },
+  { deliveryStatus: "arriving", progress: 80 },
+  { deliveryStatus: "delivered", progress: 100 }
+];
+const createDelivery = async (req, res) => {
+  try {
+    const { userId, orderId } = req.body;
+    if (!orderId) return res.status(400).json({ error: "orderId is required" });
+
+    const delivery = await Delivery.create({ userId, orderId });
+
+    // Update Order deliveryStatus immediately to "processing"
+    await Order.findByIdAndUpdate(orderId, { deliveryStatus: "processing", progress: 0 });
+
+    // Simulate delivery progress asynchronously
+    simulateDeliveryProgress(delivery._id, orderId);
+
+    res.json({
+      message: "Delivery created and simulation started",
+      deliveryId: delivery._id,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+// Background progress simulation
+const simulateDeliveryProgress = async (deliveryId, orderId) => {
+  let step = 0;
+
+  const interval = setInterval(async () => {
+    if (step >= DELIVERY_STEPS.length) {
+      clearInterval(interval);
+      return;
+    }
+
+    const { deliveryStatus, progress } = DELIVERY_STEPS[step];
+
+    await Delivery.findByIdAndUpdate(deliveryId, { status: deliveryStatus, progress });
+    await Order.findByIdAndUpdate(orderId, { deliveryStatus, progress });
+
+    console.log(`Delivery ${deliveryId} → Status: ${deliveryStatus}, ${progress}%`);
+    step++;
+  }, 3000);
+};
+
+
+// Return current delivery status
+const getDelivery = async (req, res) => {
+  try {
+    const delivery = await Delivery.findById(req.params.id);
+    res.json(delivery);
+  } catch (err) {
+    res.status(404).json({ error: "Delivery not found" });
+  }
+};
 const orderController = {
   createOrder,
   getMyOrders,
   getAllOrders,
-  updateOrderStatus
+  updateOrderStatus,
+  createDelivery,
+  getDelivery
 };
 module.exports = orderController;
