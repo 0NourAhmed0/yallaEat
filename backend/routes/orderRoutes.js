@@ -3,6 +3,8 @@ const router = express.Router();
 const orderController = require('../controllers/orderController');
 const authenticationMiddleware = require('../middleware/authenticationMiddleware');
 const authorizationMiddleware = require('../middleware/authorizationMiddleware');
+
+
 router.post('/', 
   authenticationMiddleware, 
   authorizationMiddleware(['customer']), 
@@ -22,5 +24,21 @@ router.put('/:id',
   authenticationMiddleware, 
   authorizationMiddleware(['admin', 'staff']), 
   orderController.updateOrderStatus
+);
+//delivery routes
+
+//this route starts the delivery process
+router.post(
+  '/delivery',
+  authenticationMiddleware,
+  authorizationMiddleware([ 'admin', 'staff']),
+  orderController.createDelivery
+);
+
+router.get(
+  '/delivery/:id',
+  authenticationMiddleware,
+  authorizationMiddleware(['customer', 'admin', 'staff']),
+  orderController.getDelivery
 );
 module.exports = router;
