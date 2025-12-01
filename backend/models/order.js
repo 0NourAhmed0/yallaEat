@@ -38,7 +38,20 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ["pending", "paid", "failed"],
     default: "pending"
-  }
+  },
+  estimatedReadyTime:{
+    type: Number
+   },
+
+   ////delivery
+   isDelivery: { type: Boolean, default: false },
+
+    deliveryStatus: {
+    type: String,
+    enum: ["pending", "processing", "on_the_way", "arriving", "delivered"],
+    default: "pending",
+  },
+  progress: { type: Number, default: 0 }, // % progress
 
 }, { timestamps: true });
 module.exports = mongoose.model("Order", orderSchema);

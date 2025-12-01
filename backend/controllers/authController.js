@@ -105,7 +105,7 @@ const authController = {
           role: user.role,
         },
 
-        token,
+        //token,
       });
     } catch (error) {
       res.status(500).json({ message: "Login failed", error: error.message });
