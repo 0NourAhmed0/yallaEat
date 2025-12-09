@@ -119,7 +119,7 @@ const updateOrderStatus = async (req, res) => {
     orderStatusChanged.subscribe(emailNotifier);
 
     // Only send emails for certain statuses
-    if (status === "Ready" || status === "Cancelled") {
+    if (status === "Ready"  ||status === "Cancelled") {
       orderStatusChanged.notify({
         orderNumber: order.orderNumber,
         userEmail: order.user.email,
