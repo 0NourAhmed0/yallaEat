@@ -17,7 +17,7 @@ const authController = {
   //this is for customers & admins (admins won't be available in the frontend! but put straight into the database) staffs will be added by admin via a separate staff management system (implemented in adminController)
   register: async (req, res) => {
     try {
-      const { name, email, password, role } = req.body;
+      const { name, email, password, phone, role } = req.body;
 
       // Check if user exists
       const existingUser = await User.findOne({ email });
@@ -35,6 +35,7 @@ const authController = {
         name,
         email,
         password: hashedPassword,
+        phone,
         role: userRole, // Default to "customer" 
       });
 
@@ -54,6 +55,7 @@ const authController = {
           id: newUser._id,
           name: newUser.name,
           email: newUser.email,
+          phone: newUser.phone,
           role: newUser.role,
         },
       });
@@ -186,6 +188,18 @@ logout: async (req, res) => {
       res.status(500).json({ message: "Error resetting password", error: error.message });
     }
   },
+    getProfile: async (req, res) => {
+    try {
+      const user = await User.findById(req.user.id).select("-password"); // assuming req.user.id from JWT
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.status(200).json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get profile", error: error.message });
+    }
+  },
 };
 //to send OTP email!
 const sendOtpEmail = async (email, otp) => {
@@ -257,4 +271,5 @@ module.exports = {
   sendOtpEmail,
   updateProfile,
   deleteProfile,
+  getProfile: authController.getProfile,
 };
