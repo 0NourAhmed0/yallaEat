@@ -1,0 +1,125 @@
+.register-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 100px);
+  padding: 20px;
+  background: #fff;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(255, 119, 103, 0.1);
+}
+
+.register-card h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.8rem;
+  color: #1f1f1f;
+  font-weight: 700;
+}
+
+.register-subtitle {
+  margin: 0 0 32px 0;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #1f1f1f;
+  font-size: 0.95rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #ff7767;
+  box-shadow: 0 0 0 3px rgba(255, 119, 103, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #999;
+}
+
+.error-message {
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: #ffe0e0;
+  color: #c41e1e;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  border-left: 4px solid #c41e1e;
+}
+
+.register-btn {
+  width: 100%;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #ff7767, #ff9070);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+  margin-top: 8px;
+}
+
+.register-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(255, 119, 103, 0.3);
+}
+
+.register-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 24px;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.login-link a {
+  color: #ff7767;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.login-link a:hover {
+  color: #ff5540;
+}
+
+@media (max-width: 480px) {
+  .register-card {
+    padding: 30px 20px;
+  }
+
+  .register-card h2 {
+    font-size: 1.5rem;
+  }
+}
