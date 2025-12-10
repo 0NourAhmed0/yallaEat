@@ -32,10 +32,9 @@ export default function LoginForm() {
       <header className="navbar">
         <div className="brand" onClick={() => navigate('/')}>YallaEat</div>
         <nav className="nav-links">
-          <a href="#menu">Menu</a>
-          <a href="#offers">Offers</a>
-          <a href="#track">Track Order</a>
-          <a href="#cart">Cart</a>
+          <a href="/">Home</a>
+          <a href="/menu">Menu</a>
+          
         </nav>
         <button className="cta" onClick={() => navigate('/login')}>Login</button>
       </header>

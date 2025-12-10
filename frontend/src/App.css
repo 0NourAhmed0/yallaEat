@@ -13,7 +13,7 @@
   justify-content: space-between;
   padding: 18px 28px;
   margin: 16px;
-  background: linear-gradient(135deg, #ff7767, #ff9070);
+  background: linear-gradient(135deg, #ff6160, #f18b6f);
   color: #fff;
   border-radius: 16px;
   box-shadow: 0 14px 35px rgba(255, 105, 97, 0.25);
@@ -37,18 +37,26 @@
   align-items: center;
 }
 
-.nav-links a {
+.nav-link {
   color: #fff;
   font-weight: 500;
   font-size: 0.98rem;
   padding: 8px 10px;
   border-radius: 10px;
-  transition: background 160ms ease, transform 160ms ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease, opacity 160ms ease;
 }
 
-.nav-links a:hover {
+.nav-link:hover {
   background: rgba(255, 255, 255, 0.18);
   transform: translateY(-2px);
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.28);
+  font-weight: 700;
 }
 
 .cta {
@@ -85,7 +93,7 @@
   padding: 8px 14px;
   border-radius: 999px;
   background: rgba(255, 119, 103, 0.12);
-  color: #ff6f61;
+  color: #ff6160;
   font-weight: 600;
   letter-spacing: 0.4px;
   margin-bottom: 14px;
