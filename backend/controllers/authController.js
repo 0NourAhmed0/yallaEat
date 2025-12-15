@@ -200,6 +200,35 @@ logout: async (req, res) => {
       res.status(500).json({ message: "Failed to get profile", error: error.message });
     }
   },
+
+   checkAuth: async (req, res) => {
+    try {
+      // req.user is already populated by authenticate middleware
+      if (req.user) {
+        return res.status(200).json({ 
+          success: true, 
+          isAuthenticated: true,
+          user: {
+            id: req.user._id,
+            name: req.user.name,
+            email: req.user.email,
+            role: req.user.role
+          }
+        });
+      }
+      
+      return res.status(401).json({ 
+        success: false, 
+        isAuthenticated: false 
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        message: "Auth check failed", 
+        error: error.message 
+      });
+    }
+  },
 };
 //to send OTP email!
 const sendOtpEmail = async (email, otp) => {
@@ -266,10 +295,13 @@ try {
 
 
 
+
+
 module.exports = {
   ...authController, 
   sendOtpEmail,
   updateProfile,
   deleteProfile,
   getProfile: authController.getProfile,
+  checkAuth: authController.checkAuth
 };
