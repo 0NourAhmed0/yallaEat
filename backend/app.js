@@ -63,10 +63,17 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-const PORT = process.env.PORT || 5000;
-mongoose.connect(process.env.DB_URL)
-  .then(() => {
-    console.log(" Connected to MongoDB");
-    app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
-  })
-  .catch((err) => console.error("MongoDB connection failed:", err));
+// Export the app for testing (Supertest/Jest).
+module.exports = app;
+
+// Only connect & listen when running directly: `node app.js` / `nodemon app.js`
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  mongoose
+    .connect(process.env.DB_URL)
+    .then(() => {
+      console.log(" Connected to MongoDB");
+      app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
+    })
+    .catch((err) => console.error("MongoDB connection failed:", err));
+}

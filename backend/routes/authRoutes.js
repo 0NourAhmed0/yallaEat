@@ -16,7 +16,7 @@ router.get("/check", authenticate, authController.checkAuth);
 router.put("/resetPasswordWithOtp", authController.resetPasswordWithOtp); // Reset password with OTP
 
 router.put('/user/:id' ,authenticate, authorize((['staff' , 'customer'])) , authController.updateProfile);
-router.delete('/user/:id' ,authenticate, authorize((['staff' , 'customer '])) , authController.deleteProfile);
+router.delete('/user/:id' ,authenticate, authorize((['staff' , 'customer'])) , authController.deleteProfile);
 
 module.exports = router;
 
