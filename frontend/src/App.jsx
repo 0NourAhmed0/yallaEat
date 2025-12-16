@@ -8,6 +8,7 @@ import Menu from './pages/Menu.jsx';
 import CreateOrder from './pages/CreateOrder.jsx';
 import GetOrders from './pages/GetOrders.jsx';
 import CustomerProfile from './pages/CustomerProfile.jsx';
+import StaffMenuItemPage from './pages/StaffMenuItemPage.jsx';
 
 function App() {
   return (
@@ -16,10 +17,11 @@ function App() {
         <Route path="/" element={<Layout />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
-        <Route path="/menu" element={<Menu/>} />
-        <Route path="/createOrder" element={<CreateOrder/>} />
-        <Route path="/orders" element={<GetOrders/>} />
+        <Route path="/menu" element={<Menu />} />
+        <Route path="/createOrder" element={<CreateOrder />} />
+        <Route path="/orders" element={<GetOrders />} />
         <Route path="/profile" element={<CustomerProfile />} />
+        <Route path="/admin/menu" element={<StaffMenuItemPage />} />
       </Routes>
     </AuthProvider>
   )
