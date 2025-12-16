@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from "../api/client";
 import '../styles/Menu.css';
 
 const Menu = () => {
@@ -16,7 +16,7 @@ const Menu = () => {
   const fetchMenuItems = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:3000/api/menu-items');
+      const response = await api.get('/api/menu-items', { withCredentials: false });
       
       if (response.data.success) {
         setMenuItems(response.data.items);
@@ -29,16 +29,27 @@ const Menu = () => {
     }
   };
 
+  const addToCart = (item) => {
+    const key = "yallaeat_cart";
+    const existing = JSON.parse(localStorage.getItem(key) || "[]");
+    const idx = existing.findIndex((x) => x._id === item._id);
+    if (idx >= 0) {
+      existing[idx].quantity = (existing[idx].quantity || 1) + 1;
+    } else {
+      existing.push({ _id: item._id, name: item.name, price: item.price, quantity: 1 });
+    }
+    localStorage.setItem(key, JSON.stringify(existing));
+    navigate("/cart");
+  };
+
   const handleOrderClick = async (item) => {
     try {
       // Check if user is logged in by calling your auth endpoint
-      const response = await axios.get('http://localhost:3000/api/auth/check', {
-        withCredentials: true // Include cookies if using session-based auth
-      });
+      const response = await api.get('/api/auth/check');
 
       if (response.data.success && response.data.isAuthenticated) {
-        // User is logged in, redirect to order page
-        navigate('/createOrder', { state: { menuItem: item } });
+        // User is logged in, add to cart (multi-item ordering) then go to cart
+        addToCart(item);
       } else {
         // User is not logged in, redirect to register
         navigate('/register');
@@ -63,11 +74,8 @@ const Menu = () => {
           <button className="nav-link active" onClick={() => navigate('/menu')}>
             Menu
           </button>
-          <button className="nav-link" onClick={() => navigate('/about')}>
-            About
-          </button>
-          <button className="cta" onClick={() => navigate('/order')}>
-            Order Now
+          <button className="cta" onClick={() => navigate('/cart')}>
+            Cart
           </button>
         </div>
       </nav>
@@ -129,8 +137,9 @@ const Menu = () => {
                   </div>
                   <label className="add-topping-label">
                   </label>
-                  <button  className="order-button" 
-                    onClick={() => handleOrderClick(item)}>order</button>
+                  <button className="order-button" onClick={() => handleOrderClick(item)}>
+                    Add to cart
+                  </button>
                 </div>
              
             ))}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from "../api/client";
 import '../styles/GetOrders.css';
 
 const GetOrders = () => {
@@ -16,9 +16,7 @@ const GetOrders = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:3000/api/orders/my-orders', {
-        withCredentials: true
-      });
+      const response = await api.get('/api/orders/my-orders');
 
       if (response.data.success) {
         setOrders(response.data.orders);
@@ -70,8 +68,8 @@ const GetOrders = () => {
           <button className="nav-link active" onClick={() => navigate('/orders')}>
             My Orders
           </button>
-          <button className="cta" onClick={() => navigate('/order')}>
-            Order Now
+          <button className="cta" onClick={() => navigate('/menu')}>
+            Browse Menu
           </button>
         </div>
       </nav>

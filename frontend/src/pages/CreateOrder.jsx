@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import { api } from "../api/client";
 import '../styles/CreateOrder.css';
 
 const CreateOrder = () => {
@@ -38,8 +38,8 @@ const CreateOrder = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        'http://localhost:3000/api/orders',
+      const response = await api.post(
+        '/api/orders',
         formData,
         { withCredentials: true }
       );
