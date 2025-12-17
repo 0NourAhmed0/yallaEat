@@ -155,22 +155,6 @@ const AdminReservations = () => {
 
   return (
     <div className="page">
-      <nav className="navbar">
-        <div className="brand" onClick={() => navigate('/')}>
-          YallaEat Admin
-        </div>
-        <div className="nav-links">
-          <button className="nav-link" onClick={() => navigate('/')}>
-            Home
-          </button>
-          <button className="nav-link" onClick={() => navigate('/menu')}>
-            Menu
-          </button>
-          <button className="nav-link active" onClick={() => navigate('/admin/reservations')}>
-            Reservations
-          </button>
-        </div>
-      </nav>
 
       <div className="admin-reservations-page">
         <section className="filters-card">

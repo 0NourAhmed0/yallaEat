@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Menu.css";
-import { isLoggedIn } from "../auth/auth";
+import { addItem } from "../utils/cart";
 
 const Menu = () => {
   const navigate = useNavigate();
@@ -27,50 +27,20 @@ const Menu = () => {
     }
   };
 
-  const handleOrderClick = (item) => {
-    if (isLoggedIn()) {
-      navigate("/createOrder", { state: { menuItem: item } });
-    } else {
-      navigate("/login", { state: { from: "/menu", menuItem: item } });
-    }
+  const handleAddToCart = (item) => {
+    addItem({
+      id: item._id,
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category: item.category,
+      imageUrl: item.imageUrl
+    });
+    alert(`${item.name} added to cart!`);
   };
 
   return (
     <div className="page">
-      <nav className="navbar">
-        <div className="brand" onClick={() => navigate("/")}>
-          YallaEat
-        </div>
-
-        <div className="nav-links">
-          <button className="nav-link" onClick={() => navigate("/")}>
-            Home
-          </button>
-
-          <button className="nav-link active" onClick={() => navigate("/menu")}>
-            Menu
-          </button>
-
-          <button className="cta" onClick={() => navigate("/menu")}>
-            Order Now
-          </button>
-
-          {!isLoggedIn() ? (
-            <button className="nav-link" onClick={() => navigate("/login")}>
-              Login
-            </button>
-          ) : (
-            <button className="nav-link" onClick={() => navigate("/profile")}>
-              Profile
-            </button>
-          )}
-
-          <button className="nav-link" onClick={() => navigate("/cart")}>
-            Cart
-          </button>
-        </div>
-      </nav>
-
       <section className="hero">
         <div className="hero-text">
           <span className="eyebrow">Our Menu</span>
@@ -110,7 +80,7 @@ const Menu = () => {
               <div key={item._id} className="menu-card-compact">
                 <div className="menu-card-left">
                   <img
-                    src={item.image || "/images/OIP.jpg"}
+                    src={item.imageUrl || "/images/OIP.jpg"}
                     alt={item.name}
                     className="menu-card-thumbnail"
                   />
@@ -128,8 +98,8 @@ const Menu = () => {
                   <p className="menu-item-category">Category : {item.category}</p>
                 </div>
 
-                <button className="order-button" onClick={() => handleOrderClick(item)}>
-                  order
+                <button className="order-button" onClick={() => handleAddToCart(item)}>
+                  Add to Cart
                 </button>
               </div>
             ))}

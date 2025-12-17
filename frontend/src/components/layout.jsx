@@ -4,8 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 const linkSets = {
   guest: [
     { label: "Home", path: "/" },
-    { label: "Menu", path: "/menu" },
-    { label: "Reservations", path: "/reservations" },
+    { label: "Menu", path: "/menu" }
   ],
   customer: [
     { label: "Home", path: "/" },
@@ -58,17 +57,8 @@ export default function Layout() {
     }
   };
 
-  const handleNavClick = (link) => {
-    if (link.path === "/reservations" && !user) {
-      alert("You must be logged in to make a reservation.");
-      navigate("/login");
-      return;
-    }
-    navigate(link.path);
-  };
-
   return (
-    <div className="page">
+    <>
       <header className="navbar">
         <div className="brand" onClick={() => navigate("/")}>YallaEat</div>
         <nav className="nav-links">
@@ -76,7 +66,7 @@ export default function Layout() {
             <button
               key={link.path}
               className={location.pathname === link.path ? "nav-link active" : "nav-link"}
-              onClick={() => handleNavClick(link)}
+              onClick={() => navigate(link.path)}
             >
               {link.label}
             </button>
@@ -86,15 +76,7 @@ export default function Layout() {
           {user ? "Logout" : "Login"}
         </button>
       </header>
-
-      <main className="hero">
-        <div className="hero-text">
-          <p className="eyebrow">YallaEat!</p>
-          <h1>Fresh, delicious food that will yenasik el homom </h1>
-          <p className="sub">han4oof momken n3mel hena eyh</p>
-        </div>
-      </main>
-    </div>
+    </>
   );
 }
 
