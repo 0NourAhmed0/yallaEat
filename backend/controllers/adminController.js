@@ -63,17 +63,17 @@ const disableCustomer = async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findById(id);
-    if (!user) return res.status(404).json({ message: 'Customer not found' });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     // Only allow disabling customers
-    if (user.role !== 'customer') {
-      return res.status(403).json({ message: 'Only customers can be disabled' });
+    if (user.role !== "customer") {
+      return res.status(403).json({ message: "Only customers can be disabled" });
     }
 
     user.disabled = true;
     await user.save();
 
-    res.status(200).json({ message: 'Customer disabled successfully', updatedUser: user });
+    res.status(200).json({ message: "Customer disabled successfully", updatedUser: user });
   } catch (error) {
     res.status(500).json({ message: 'Error disabling customer', error: error.message });
   }

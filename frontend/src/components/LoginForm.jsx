@@ -66,7 +66,7 @@ export default function LoginForm() {
           </form>
 
           <p className="signup-link">
-            Don't have an account? <a href="/Register">Sign up here</a>
+            Don't have an account? <a href="/register">Sign up here</a>
           </p>
           <p className="forgot-password">
             <a href="/forgot-password">Forgot your password?</a>

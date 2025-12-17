@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from "../api/client";
 import '../styles/CustomerProfile.css';
 
 const CustomerProfile = () => {
@@ -24,9 +24,7 @@ const CustomerProfile = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:3000/api/users/profile', {
-        withCredentials: true
-      });
+      const response = await api.get('/api/users/profile');
 
       setUser(response.data);
       setFormData({
@@ -68,11 +66,7 @@ const CustomerProfile = () => {
       if (formData.phone) updateData.phone = formData.phone;
       if (formData.password) updateData.password = formData.password;
 
-      const response = await axios.put(
-        `http://localhost:3000/api/auth/user/${user._id}`,
-        updateData,
-        { withCredentials: true }
-      );
+      const response = await api.put(`/api/auth/user/${user._id}`, updateData);
 
       if (response.data.success) {
         setUser(response.data.user);
@@ -88,9 +82,7 @@ const CustomerProfile = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:3000/api/auth/logout', {}, {
-        withCredentials: true
-      });
+      await api.post('/api/auth/logout', {});
       navigate('/login');
     } catch (err) {
       console.error('Logout error:', err);
