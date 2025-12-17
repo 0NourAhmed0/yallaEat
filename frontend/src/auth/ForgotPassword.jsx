@@ -1,32 +1,62 @@
 import { useState } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { api } from "../api/client";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setStatus("");
+    setError("");
+    setLoading(true);
     try {
-      await axios.put("/api/auth/forgetPassword", { email });
-      toast.success("Check your email for password reset instructions.");
+      await api.put("/api/auth/forgetPassword", { email });
+      setStatus("OTP sent. Check your email.");
     } catch (error) {
-      toast.error(
-        error?.response?.data?.message || "Failed to send reset email. Please try again."
-      );
+      setError(error?.response?.data?.message || "Failed to send OTP. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <button type="submit">Send Reset Link</button>
-    </form>
+    <div className="login-container">
+      <div className="login-card">
+        <h2>Forgot Password</h2>
+        <p className="login-subtitle">We’ll email you an OTP to reset your password.</p>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="email">Email Address</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          {status && <div style={{ color: "#2e7d32", marginBottom: 10 }}>{status}</div>}
+          {error && <div className="error-message">{error}</div>}
+
+          <button type="submit" className="login-btn" disabled={loading}>
+            {loading ? "Sending..." : "Send OTP"}
+          </button>
+        </form>
+
+        <p className="signup-link" style={{ marginTop: 12 }}>
+          <button className="nav-link" type="button" onClick={() => navigate("/login")}>
+            Back to login
+          </button>
+        </p>
+      </div>
+    </div>
   );
 }

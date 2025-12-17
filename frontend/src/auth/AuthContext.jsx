@@ -1,7 +1,7 @@
 
 
 import { createContext, useContext, useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../api/client";
 
 const AuthContext = createContext();
 
@@ -12,18 +12,9 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // Check if token exists in cookies before fetching
-        const hasCookie = document.cookie.includes('token');
-        
-        if (!hasCookie) {
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        const res = await axios.get("http://localhost:3000/api/users/profile", {
-          withCredentials: true,
-        });
+        // The auth cookie is httpOnly, so JS cannot read it.
+        // Instead, just call the profile endpoint; it will 401 if unauthenticated.
+        const res = await api.get("/api/users/profile");
         if (res.data) {
           setUser(res.data);
         }
@@ -40,9 +31,7 @@ export const AuthProvider = ({ children }) => {
   // Register function
   const register = async (userData) => {
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/register", userData, {
-        withCredentials: true,
-      });
+      const response = await api.post("/api/auth/register", userData);
       if (response.data) {
         return true;
       }
@@ -56,9 +45,7 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (credentials) => {
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/login", credentials, {
-        withCredentials: true,
-      });
+      const response = await api.post("/api/auth/login", credentials);
       if (response.data) {
         setUser(response.data.user);
         return true;
@@ -73,13 +60,7 @@ export const AuthProvider = ({ children }) => {
     // Logout function in case we have logout endpoint
   const logout = async () => {
     try {
-      await axios.post(
-        "http://localhost:3000/api/auth/logout",
-        {},
-        {
-          withCredentials: true,
-        }
-      );
+      await api.post("/api/auth/logout", {});
       setUser(null);
     } catch (error) {
       console.error("Logout error:", error.response?.data || error.message);

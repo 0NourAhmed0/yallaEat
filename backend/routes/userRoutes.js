@@ -3,7 +3,7 @@ const router = express.Router();
 const adminController = require("../controllers/adminController");
 const authenticate = require("../middleware/authenticationMiddleware"); //yet to be made
 const authorize = require("../middleware/authorizationMiddleware"); //same here
-const { authController, getProfile } = require("../controllers/authController");
+const { getProfile } = require("../controllers/authController");
 
 // Public profile route (requires authentication)
 router.get('/profile', authenticate, getProfile);
