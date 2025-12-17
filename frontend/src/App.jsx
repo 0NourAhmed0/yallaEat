@@ -22,6 +22,11 @@ import GetOrders from './pages/GetOrders.jsx';
 import FeedbackForm from "./pages/FeedbackForm.jsx";
 import MyFeedback from "./pages/MyFeedback.jsx";
 import AdminFeedback from "./pages/AdminFeedback.jsx"; // optional (admin/staff)
+import AdminUsers from './pages/AdminUsers.jsx';
+import AdminOrders from './pages/AdminOrders.jsx';
+import AdminDashboard from './pages/admin/AdminDashboard.jsx';
+import ForgotPassword from './pages/ForgotPassword.jsx';
+import Home from './pages/Home.jsx';
 
 function App() {
   return (
@@ -33,11 +38,20 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/menu" element={<Menu />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* protected: profile */}
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
         <Route
           path="/profile"
           element={
@@ -119,6 +133,23 @@ function App() {
               <AdminFeedback />
             </ProtectedRoute>
           }
+        />
+          
+          <Route 
+            path="/admin/staff" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminUsers />
+              </ProtectedRoute>
+            } 
+          />
+        <Route 
+          path="/admin/orders" 
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']}>
+              <AdminOrders />
+            </ProtectedRoute>
+          } 
         />
       </Routes>
     </AuthProvider>

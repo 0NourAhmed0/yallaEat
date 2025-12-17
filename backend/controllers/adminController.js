@@ -62,24 +62,50 @@ const deleteStaff = async (req, res) => {
 const disableCustomer = async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedUser = await User.findByIdAndUpdate(id, { disabled: true }, { new: true });
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'Customer not found' });
 
-    if (!updatedUser) return res.status(404).json({ message: 'Customer not found' });
-        // Only allow disabling customers ,others will be delt with in another way
+    // Only allow disabling customers
     if (user.role !== 'customer') {
       return res.status(403).json({ message: 'Only customers can be disabled' });
     }
 
-    res.status(200).json({ message: 'Customer disabled successfully', updatedUser });
+    user.disabled = true;
+    await user.save();
+
+    res.status(200).json({ message: 'Customer disabled successfully', updatedUser: user });
   } catch (error) {
     res.status(500).json({ message: 'Error disabling customer', error: error.message });
   }
 };
+
+// Enable customer
+const enableCustomer = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'Customer not found' });
+
+    // Only allow enabling customers
+    if (user.role !== 'customer') {
+      return res.status(403).json({ message: 'Only customers can be enabled' });
+    }
+
+    user.disabled = false;
+    await user.save();
+
+    res.status(200).json({ message: 'Customer enabled successfully', updatedUser: user });
+  } catch (error) {
+    res.status(500).json({ message: 'Error enabling customer', error: error.message });
+  }
+};
+
 module.exports = {
     getAllUsers,
     addStaff,
     updateStaff,
     deleteStaff,
-    disableCustomer
+    disableCustomer,
+    enableCustomer
 
 };
