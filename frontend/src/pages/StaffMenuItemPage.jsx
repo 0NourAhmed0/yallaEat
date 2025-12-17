@@ -17,7 +17,6 @@ const StaffMenuItemPage = () => {
         description: '',
         price: '',
         category: '',
-        category: '',
         imageUrl: '',
         isAvailable: true
     });
@@ -60,7 +59,6 @@ const StaffMenuItemPage = () => {
             name: '',
             description: '',
             price: '',
-            category: '',
             category: '',
             imageUrl: '',
             isAvailable: true
@@ -139,23 +137,6 @@ const StaffMenuItemPage = () => {
 
     return (
         <div className="page">
-            <nav className="navbar">
-                <div className="brand" onClick={() => navigate('/')}>
-                    YallaEat Staff
-                </div>
-                <div className="nav-links">
-                    <button className="nav-link" onClick={() => navigate('/')}>
-                        Home
-                    </button>
-                    <button className="nav-link" onClick={() => navigate('/menu')}>
-                        Public Menu
-                    </button>
-                    <button className="nav-link active">
-                        Manage Menu
-                    </button>
-                </div>
-            </nav>
-
             <div className="page-header">
                 <div className="page-title">
                     <h1>Menu Management</h1>

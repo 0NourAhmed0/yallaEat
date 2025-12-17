@@ -110,29 +110,6 @@ const CustomerProfile = () => {
 
   return (
     <div className="page">
-      <nav className="navbar">
-        <div className="brand" onClick={() => navigate('/')}>
-          YallaEat
-        </div>
-        <div className="nav-links">
-          <button className="nav-link" onClick={() => navigate('/')}>
-            Home
-          </button>
-          <button className="nav-link" onClick={() => navigate('/menu')}>
-            Menu
-          </button>
-          <button className="nav-link" onClick={() => navigate('/orders')}>
-            My Orders
-          </button>
-          <button className="nav-link active" onClick={() => navigate('/profile')}>
-            Profile
-          </button>
-          <button className="cta" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
-      </nav>
-
       <div className="profile-container">
         <div className="profile-card">
           <div className="profile-header">

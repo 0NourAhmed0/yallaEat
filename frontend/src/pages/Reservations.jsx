@@ -178,29 +178,6 @@ const Reservations = () => {
 
   return (
     <div className="page">
-      <nav className="navbar">
-        <div className="brand" onClick={() => navigate('/')}>
-          YallaEat
-        </div>
-        <div className="nav-links">
-          <button className="nav-link" onClick={() => navigate('/')}>
-            Home
-          </button>
-          <button className="nav-link" onClick={() => navigate('/menu')}>
-            Menu
-          </button>
-          <button className="nav-link" onClick={() => navigate('/orders')}>
-            My Orders
-          </button>
-          <button className="nav-link active" onClick={() => navigate('/reservations')}>
-            Reservations
-          </button>
-          <button className="nav-link" onClick={() => navigate('/profile')}>
-            Profile
-          </button>
-        </div>
-      </nav>
-
       <div className="reservations-page">
         <section className="reservation-form-section">
           <h2>Create a Reservation</h2>
