@@ -25,9 +25,8 @@ const linkSets = {
     { label: "Orders", path: "/admin/orders" },
     { label: "Reservations", path: "/admin/reservations" },
     { label: "Menu", path: "/admin/menu" },
-    { label: "Users", path: "/admin/users" },
     { label: "Feedback", path: "/admin/feedback" },
-    { label: "Staff", path: "/admin/staff" },
+    { label: "User and Staff managment", path: "/admin/staff" },
   ],
 };
 

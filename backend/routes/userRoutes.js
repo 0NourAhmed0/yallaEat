@@ -15,6 +15,7 @@ router.get('/users', authorize(['admin']), adminController.getAllUsers);
 router.post('/staff', authorize(['admin']), adminController.addStaff);
 router.put('/staff/:id', authorize(['admin']), adminController.updateStaff);
 router.put('/disable-customer/:id', authorize(['admin']), adminController.disableCustomer);
+router.put('/enable-customer/:id', authorize(['admin']), adminController.enableCustomer);
 router.delete('/staff/:id', authorize(['admin']), adminController.deleteStaff);
 
 module.exports = router;
