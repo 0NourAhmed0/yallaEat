@@ -1,5 +1,6 @@
 describe("Customer happy path", () => {
   const apiBase = "http://localhost:3000";
+  const price = 50;
 
   const ts = Date.now();
   const admin = { name: "Admin", email: `admin_${ts}@example.com`, password: "123456", role: "admin" };
@@ -35,6 +36,9 @@ describe("Customer happy path", () => {
 
   // User Story: As a customer, I want to view the menu, add items to my cart, and place an order.
   it("logs in, adds menu item to cart, and checks out to create an order", () => {
+    cy.intercept("POST", "/api/orders").as("createOrder");
+    cy.intercept("GET", "/api/orders/my-orders").as("myOrders");
+
     cy.visit("/login");
     cy.get('input#email').type(customer.email);
     cy.get('input#password').type(customer.password);
@@ -44,21 +48,44 @@ describe("Customer happy path", () => {
     // Navigate to menu
     cy.visit("/menu");
     cy.contains(/Delicious Dishes Await/i).should("be.visible");
-    cy.contains(new RegExp(`Burger\\s*${ts}`)).should("be.visible");
+    cy.contains(new RegExp(`Burger\\s*${ts}`), { timeout: 10000 }).should("be.visible");
 
     // Add to cart for the seeded item (avoid clicking the wrong card if DB already has items)
+    cy.on("window:alert", cy.stub().as("addedAlert"));
     cy.contains(new RegExp(`Burger\\s*${ts}`))
       .closest(".menu-card-compact")
       .within(() => {
-        cy.contains("button", "Add to cart").click();
+        cy.contains("button", "Add to Cart").click();
       });
+    cy.visit("/cart");
     cy.url().should("include", "/cart");
-    cy.contains(new RegExp(`Burger\\s*${ts}`)).should("be.visible");
+    cy.contains(".cart-item-card", new RegExp(`Burger\\s*${ts}`))
+      .should("be.visible")
+      .within(() => {
+        cy.get("input.qty-input").should("have.value", "1");
+        cy.get(".item-unit-price").should("contain", price.toFixed(2));
+        cy.get(".item-total").should("contain", price.toFixed(2));
+      });
+    cy.get(".total-price").should("contain", price.toFixed(2));
 
     // Checkout
-    cy.contains("button", "Checkout").click();
-    cy.url().should("include", "/orders");
+    cy.contains("button", "Proceed to Checkout").click();
+    cy.url().should("include", "/createOrder");
+    cy.contains(/Review Your Order/i).should("be.visible");
+    cy.contains(new RegExp(`Burger\\s*${ts}`)).should("be.visible");
+    cy.contains(".total-price", price.toFixed(2)).should("be.visible");
+
+    cy.contains("button", /Place Order/i).click();
+    cy.wait("@createOrder").its("response.statusCode").should("eq", 201);
+    cy.url({ timeout: 10000 }).should("include", "/orders");
+    cy.wait("@myOrders");
     cy.contains(/Order History/i).should("be.visible");
+    cy.contains(".order-card", new RegExp(`Burger\\s*${ts}`))
+      .should("be.visible")
+      .within(() => {
+        cy.contains(/x1/).should("be.visible");
+        cy.contains(price.toFixed(2)).should("be.visible");
+      });
   });
 });
 
