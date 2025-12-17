@@ -4,7 +4,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 const linkSets = {
   guest: [
     { label: "Home", path: "/" },
-    { label: "Menu", path: "/menu" }
+    { label: "Menu", path: "/menu" },
+    { label: "Reservations", path: "/reservations" },
   ],
   customer: [
     { label: "Home", path: "/" },
@@ -57,6 +58,15 @@ export default function Layout() {
     }
   };
 
+  const handleNavClick = (link) => {
+    if (link.path === "/reservations" && !user) {
+      alert("You must be logged in to make a reservation.");
+      navigate("/login");
+      return;
+    }
+    navigate(link.path);
+  };
+
   return (
     <div className="page">
       <header className="navbar">
@@ -66,7 +76,7 @@ export default function Layout() {
             <button
               key={link.path}
               className={location.pathname === link.path ? "nav-link active" : "nav-link"}
-              onClick={() => navigate(link.path)}
+              onClick={() => handleNavClick(link)}
             >
               {link.label}
             </button>
