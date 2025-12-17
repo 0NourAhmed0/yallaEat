@@ -28,19 +28,8 @@ export default function LoginForm() {
   };
 
   return (
-    <>
-      <header className="navbar">
-        <div className="brand" onClick={() => navigate('/')}>YallaEat</div>
-        <nav className="nav-links">
-          <a href="/">Home</a>
-          <a href="/menu">Menu</a>
-          
-        </nav>
-        <button className="cta" onClick={() => navigate('/login')}>Login</button>
-      </header>
-
-      <div className="login-container">
-        <div className="login-card">
+    <div className="login-container">
+      <div className="login-card">
           <h2>Welcome Back</h2>
           <p className="login-subtitle">Sign in to your YallaEat account</p>
 
@@ -84,6 +73,5 @@ export default function LoginForm() {
           </p>
         </div>
       </div>
-    </>
   );
 }

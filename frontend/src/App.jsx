@@ -1,88 +1,97 @@
-import { Routes, Route } from "react-router-dom";
-import "./App.css";
+import { Routes, Route } from 'react-router-dom';
+import LoginForm from './components/LoginForm.jsx';
+import RegisterForm from './components/RegisterForm.jsx';
+import './App.css'
 import { AuthProvider } from "./auth/AuthContext";
-import Layout from "./components/layout";
-
-import Menu from "./pages/Menu.jsx";
-import Cart from "./pages/Cart.jsx";
-import Checkout from "./pages/Checkout.jsx";
-import Login from "./pages/Login.jsx";
-
-import RegisterForm from "./components/RegisterForm.jsx";
-import CreateOrder from "./pages/CreateOrder.jsx";
-import GetOrders from "./pages/GetOrders.jsx";
-import CustomerProfile from "./pages/CustomerProfile.jsx";
-
-import RequireAuth from "./auth/RequireAuth.jsx";
 import Layout from './components/layout';
 import Menu from './pages/Menu.jsx';
-import CreateOrder from './pages/CreateOrder.jsx';
-import GetOrders from './pages/GetOrders.jsx';
-import CustomerProfile from './pages/CustomerProfile.jsx';
 import StaffMenuItemPage from './pages/StaffMenuItemPage.jsx';
+import ProtectedRoute from './auth/ProtectedRoutes.jsx';
+import Unauthorized from './pages/Unauthorized.jsx';
 import Reservations from './pages/Reservations.jsx';
 import AdminReservations from './pages/AdminReservations.jsx';
-import ProtectedRoute from "./auth/ProtectedRoutes.jsx";
+import Cart from './pages/Cart.jsx';
+import CustomerProfile from './pages/CustomerProfile.jsx';
+import CreateOrder from './pages/CreateOrder.jsx';
+import GetOrders from './pages/GetOrders.jsx';
 
 function App() {
   return (
     <AuthProvider>
+      <Layout />
       <Routes>
-        {/* guest allowed */}
-        <Route path="/" element={<Layout />} />
-        <Route path="/menu" element={<Menu />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
-
-        {/* protected */}
-        <Route
-          path="/createOrder"
-          element={
-            <RequireAuth>
-              <CreateOrder />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <RequireAuth>
-              <GetOrders />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <RequireAuth>
-              <CustomerProfile />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/checkout"
-          element={
-            <RequireAuth>
-              <Checkout />
-            </RequireAuth>
         <Route path="/menu" element={<Menu />} />
-        <Route path="/createOrder" element={<CreateOrder />} />
-        <Route path="/orders" element={<GetOrders />} />
-        <Route path="/profile" element={<CustomerProfile />} />
-        <Route path="/admin/menu" element={<StaffMenuItemPage />} />
-        <Route path="/reservations" element={<Reservations />} />
-        <Route
-          path="/admin/reservations"
+        <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute allowedRoles={['customer', 'admin', 'staff']}>
+              <CustomerProfile />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/orders" 
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <GetOrders />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/createOrder" 
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <CreateOrder />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/reservations" 
+          element={
+            <ProtectedRoute allowedRoles={['customer', 'admin', 'staff']}>
+              <Reservations />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/reservations" 
           element={
             <ProtectedRoute allowedRoles={['admin', 'staff']}>
               <AdminReservations />
             </ProtectedRoute>
-          }
+          } 
+        />
+        <Route 
+          path="/admin/menu" 
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']}>
+              <StaffMenuItemPage />
+            </ProtectedRoute>
+          } 
         />
       </Routes>
     </AuthProvider>
+  )
+}
+
+// Temporary Home component
+function Home() {
+  return (
+    <div className="page">
+      <main className="hero">
+        <div className="hero-text">
+          <p className="eyebrow">YallaEat!</p>
+          <h1>Fresh, delicious food that will yenasik el homom </h1>
+          <p className="sub">han4oof momken n3mel hena eyh</p>
+        </div>
+      </main>
+    </div>
   );
 }
 
-export default App;
+export default App

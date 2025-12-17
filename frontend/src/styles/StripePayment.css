@@ -1,0 +1,154 @@
+.stripe-payment-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.payment-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.payment-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.3rem;
+  color: #1f1f1f;
+}
+
+.payment-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ff7767;
+  margin: 0;
+}
+
+.test-card-info {
+  background: #f0f8ff;
+  border: 2px solid #4a90e2;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.test-card-info p {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #1f1f1f;
+}
+
+.test-card-info ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.test-card-info li {
+  margin: 4px 0;
+}
+
+.stripe-form {
+  width: 100%;
+}
+
+.card-element-wrapper {
+  margin-bottom: 20px;
+}
+
+.card-element-wrapper label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #1f1f1f;
+  font-size: 0.95rem;
+}
+
+.card-element-wrapper .StripeElement {
+  padding: 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: white;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.card-element-wrapper .StripeElement--focus {
+  border-color: #ff7767;
+  box-shadow: 0 0 0 3px rgba(255, 119, 103, 0.1);
+}
+
+.card-element-wrapper .StripeElement--invalid {
+  border-color: #e74c3c;
+}
+
+.stripe-error {
+  padding: 12px;
+  background: #fee;
+  border: 1px solid #e74c3c;
+  border-radius: 8px;
+  color: #c0392b;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.stripe-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pay-btn {
+  width: 100%;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #ff7767, #ff5a47);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 119, 103, 0.3);
+}
+
+.pay-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 119, 103, 0.4);
+}
+
+.pay-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cancel-payment-btn {
+  width: 100%;
+  padding: 12px 20px;
+  background: #e0e0e0;
+  color: #1f1f1f;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-payment-btn:hover:not(:disabled) {
+  background: #c0c0c0;
+}
+
+.cancel-payment-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .test-card-info {
+    font-size: 0.85rem;
+  }
+  
+  .payment-amount {
+    font-size: 1.3rem;
+  }
+}
