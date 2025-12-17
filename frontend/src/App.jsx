@@ -14,6 +14,11 @@ import Cart from './pages/Cart.jsx';
 import CustomerProfile from './pages/CustomerProfile.jsx';
 import CreateOrder from './pages/CreateOrder.jsx';
 import GetOrders from './pages/GetOrders.jsx';
+import AdminUsers from './pages/AdminUsers.jsx';
+import AdminOrders from './pages/AdminOrders.jsx';
+import AdminDashboard from './pages/admin/AdminDashboard.jsx';
+import ForgotPassword from './pages/ForgotPassword.jsx';
+import Home from './pages/Home.jsx';
 
 function App() {
   return (
@@ -23,9 +28,18 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/menu" element={<Menu />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/cart" element={<Cart />} />
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
         <Route 
           path="/profile" 
           element={
@@ -74,23 +88,25 @@ function App() {
             </ProtectedRoute>
           } 
         />
+          
+          <Route 
+            path="/admin/staff" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminUsers />
+              </ProtectedRoute>
+            } 
+          />
+        <Route 
+          path="/admin/orders" 
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']}>
+              <AdminOrders />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
     </AuthProvider>
-  )
-}
-
-// Temporary Home component
-function Home() {
-  return (
-    <div className="page">
-      <main className="hero">
-        <div className="hero-text">
-          <p className="eyebrow">YallaEat!</p>
-          <h1>Fresh, delicious food that will yenasik el homom </h1>
-          <p className="sub">han4oof momken n3mel hena eyh</p>
-        </div>
-      </main>
-    </div>
   );
 }
 
