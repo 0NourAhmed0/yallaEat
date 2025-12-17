@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(135deg, #ff7767 0%, #ff9070 50%, #ffa366 100%);
   overflow: hidden;
   padding: 2rem;
 }
@@ -99,7 +99,7 @@
 
 .cta-button.primary {
   background: white;
-  color: #667eea;
+  color: #ff7767;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
@@ -317,7 +317,7 @@ section {
 }
 
 .category-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff7767 0%, #ff9070 100%);
   padding: 2.5rem 2rem;
   border-radius: 20px;
   text-align: center;
@@ -363,7 +363,7 @@ section {
 
 .category-btn {
   background: white;
-  color: #667eea;
+  color: #ff7767;
   padding: 0.75rem 2rem;
   border: none;
   border-radius: 50px;
@@ -417,7 +417,7 @@ section {
   transform: translateX(-50%);
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #ff7767, #ff9070);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -425,7 +425,7 @@ section {
   justify-content: center;
   font-size: 1.5rem;
   font-weight: 900;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 15px rgba(255, 119, 103, 0.4);
 }
 
 .step-icon {
@@ -448,13 +448,13 @@ section {
 
 .step-arrow {
   font-size: 2.5rem;
-  color: #667eea;
+  color: #ff7767;
   font-weight: 100;
 }
 
 /* Testimonials Section */
 .testimonials-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff7767 0%, #ff9070 100%);
   color: white;
 }
 
