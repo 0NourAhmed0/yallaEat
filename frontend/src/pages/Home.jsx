@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../auth/AuthContext';
 import '../styles/Home.css';
 
@@ -7,8 +8,7 @@ export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-
-  const testimonials = [
+  const [testimonials, setTestimonials] = useState([
     {
       text: "The best shawarma I've ever had! YallaEat never disappoints.",
       author: "Ahmed K.",
@@ -24,7 +24,30 @@ export default function Home() {
       author: "Mohamed H.",
       rating: 5
     }
-  ];
+  ]);
+
+  useEffect(() => {
+    // Fetch real feedback from the backend
+    const fetchFeedback = async () => {
+      try {
+        const res = await axios.get('http://localhost:3000/api/feedback/public');
+        
+        if (res.data.data && res.data.data.length > 0) {
+          const feedbackList = res.data.data.map(fb => ({
+            text: fb.comment || "Great experience!",
+            author: fb.userId?.name || "Anonymous",
+            rating: fb.rating || 5
+          }));
+          setTestimonials(feedbackList.slice(0, 10)); // Show max 10 reviews
+        }
+      } catch (err) {
+        // If fetch fails, keep default testimonials
+        console.log('Using default testimonials');
+      }
+    };
+
+    fetchFeedback();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -65,22 +88,6 @@ export default function Home() {
                 Sign Up Now
               </button>
             )}
-          </div>
-          <div className="hero-stats">
-            <div className="stat-item">
-              <div className="stat-number">10K+</div>
-              <div className="stat-label">Happy Customers</div>
-            </div>
-            <div className="stat-divider"></div>
-            <div className="stat-item">
-              <div className="stat-number">50+</div>
-              <div className="stat-label">Menu Items</div>
-            </div>
-            <div className="stat-divider"></div>
-            <div className="stat-item">
-              <div className="stat-number">4.9★</div>
-              <div className="stat-label">Average Rating</div>
-            </div>
           </div>
         </div>
         <div className="hero-decorations">

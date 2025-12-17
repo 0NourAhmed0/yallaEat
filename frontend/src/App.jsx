@@ -156,19 +156,4 @@ function App() {
   );
 }
 
-// Temporary Home component
-function Home() {
-  return (
-    <div className="page">
-      <main className="hero">
-        <div className="hero-text">
-          <p className="eyebrow">YallaEat!</p>
-          <h1>Fresh, delicious food that will yenasik el homom</h1>
-          <p className="sub">han4oof momken n3mel hena eyh</p>
-        </div>
-      </main>
-    </div>
-  );
-}
-
 export default App;
