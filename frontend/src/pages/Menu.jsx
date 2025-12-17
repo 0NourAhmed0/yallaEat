@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { api } from "../api/client";
 import "../styles/Menu.css";
 import { addItem } from "../utils/cart";
 
@@ -17,8 +17,8 @@ const Menu = () => {
   const fetchMenuItems = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:3000/api/menu-items");
-      if (response.data.success) setMenuItems(response.data.items);
+      const response = await api.get("/api/menu-items");
+      if (response.data?.success) setMenuItems(response.data.items || []);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch menu items");
       console.error("Error fetching menu items:", err);
