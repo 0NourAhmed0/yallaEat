@@ -25,9 +25,8 @@ const linkSets = {
     { label: "Orders", path: "/admin/orders" },
     { label: "Reservations", path: "/admin/reservations" },
     { label: "Menu", path: "/admin/menu" },
-    { label: "Users", path: "/admin/users" },
     { label: "Feedback", path: "/admin/feedback" },
-    { label: "Staff", path: "/admin/staff" },
+    { label: "User and Staff managment", path: "/admin/staff" },
   ],
 };
 
@@ -58,7 +57,7 @@ export default function Layout() {
   };
 
   return (
-    <div className="page">
+    <>
       <header className="navbar">
         <div className="brand" onClick={() => navigate("/")}>YallaEat</div>
         <nav className="nav-links">
@@ -76,15 +75,7 @@ export default function Layout() {
           {user ? "Logout" : "Login"}
         </button>
       </header>
-
-      <main className="hero">
-        <div className="hero-text">
-          <p className="eyebrow">YallaEat!</p>
-          <h1>Fresh, delicious food that will yenasik el homom </h1>
-          <p className="sub">han4oof momken n3mel hena eyh</p>
-        </div>
-      </main>
-    </div>
+    </>
   );
 }
 

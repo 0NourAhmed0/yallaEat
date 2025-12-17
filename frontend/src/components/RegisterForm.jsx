@@ -53,18 +53,8 @@ export default function RegisterForm() {
   };
 
   return (
-    <>
-      <header className="navbar">
-        <div className="brand" onClick={() => navigate('/')}>YallaEat</div>
-        <nav className="nav-links">
-          <a href="/">Home</a>
-          <a href="/menu">Menu</a>
-        </nav>
-        <button className="cta" onClick={() => navigate('/login')}>Login</button>
-      </header>
-
-      <div className="register-container">
-        <div className="register-card">
+    <div className="register-container">
+      <div className="register-card">
           <h2>Create Account</h2>
           <p className="register-subtitle">Join YallaEat and start ordering delicious food</p>
 
@@ -146,6 +136,5 @@ export default function RegisterForm() {
           </p>
         </div>
       </div>
-    </>
   );
 }
