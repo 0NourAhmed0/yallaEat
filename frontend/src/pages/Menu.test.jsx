@@ -2,13 +2,16 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import axios from "axios";
 
 // Import the component we're testing
 import Menu from "./Menu";
 
-// Mock axios module to prevent real HTTP requests
-vi.mock("axios");
+// Mock the api client module that Menu.jsx imports
+vi.mock("../api/client", () => ({
+  api: {
+    get: vi.fn(),
+  },
+}));
 
 // Test suite for Menu page component
 describe("Menu page", () => {
@@ -19,9 +22,10 @@ describe("Menu page", () => {
 
   // User Story: As a customer, I want to view the menu items so that I can decide what to order
   test("loads and renders menu items from API", async () => {
-    // Step 1: Tell the mock axios to return fake menu data
+    const { api } = await import("../api/client");
+    // Step 1: Tell the mock api to return fake menu data
     // This simulates what the backend would return
-    axios.get.mockResolvedValueOnce({
+    api.get.mockResolvedValueOnce({
       data: { 
         success: true, 
         items: [{ 
@@ -60,8 +64,9 @@ describe("Menu page", () => {
 
   // Test: Check if error state displays correctly when API fails
   test("displays error message when API call fails", async () => {
-    // Step 1: Mock axios to reject with an error
-    axios.get.mockRejectedValueOnce({
+    const { api } = await import("../api/client");
+    // Step 1: Mock api to reject with an error
+    api.get.mockRejectedValueOnce({
       response: {
         data: { message: "Server error" }
       }
@@ -75,7 +80,7 @@ describe("Menu page", () => {
     );
 
     // Step 3: Wait for error message to appear
-    expect(await screen.findByText(/Failed to fetch menu items/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Server error/i)).toBeInTheDocument();
     
     // Step 4: Verify "Try Again" button is present
     expect(screen.getByText(/Try Again/i)).toBeInTheDocument();
