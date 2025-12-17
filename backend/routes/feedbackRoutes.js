@@ -12,6 +12,12 @@ const {
 const authenticationMiddleware = require("../middleware/authenticationMiddleware");
 const authorizationMiddleware = require("../middleware/authorizationMiddleware");
 
+// GET /api/feedback/public  (public - anyone can view published feedback)
+router.get(
+  "/public",
+  getAllFeedback
+);
+
 // POST /api/feedback  (customer creates feedback)
 router.post(
   "/",
