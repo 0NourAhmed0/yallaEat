@@ -1,205 +1,389 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { api } from "../api/client";
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../auth/AuthContext';
+import '../styles/Reservations.css';
 
-export default function Reservations() {
+const Reservations = () => {
   const navigate = useNavigate();
-  const [myReservations, setMyReservations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { user } = useAuth();
 
-  const [form, setForm] = useState({
-    reservation_date: "",
-    reservation_time: "",
-    party_size: 2,
-    table_number: 1,
+  const [formData, setFormData] = useState({
+    reservation_date: '',
+    reservation_time: '',
+    party_size: '',
   });
 
-  const loadMyReservations = async () => {
-    setError("");
-    try {
-      const res = await api.get("/api/reservations/my-reservations");
-      setMyReservations(res.data?.reservations || []);
-    } catch (e) {
-      setError(e.response?.data?.message || "Failed to load reservations");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [checkingTables, setCheckingTables] = useState(false);
+  const [availableTables, setAvailableTables] = useState([]);
+  const [reservedTables, setReservedTables] = useState([]);
+  const [selectedTable, setSelectedTable] = useState(null);
+  const [availabilityError, setAvailabilityError] = useState('');
+
+  const [creatingReservation, setCreatingReservation] = useState(false);
+  const [createMessage, setCreateMessage] = useState('');
+
+  const [myReservations, setMyReservations] = useState([]);
+  const [loadingReservations, setLoadingReservations] = useState(true);
+  const [reservationsError, setReservationsError] = useState('');
 
   useEffect(() => {
-    loadMyReservations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    fetchMyReservations();
+  }, [user]);
 
-  const onChange = (e) => {
-    const { name, value } = e.target;
-    setForm((p) => ({ ...p, [name]: value }));
-  };
-
-  const createReservation = async (e) => {
-    e.preventDefault();
-    setError("");
+  const fetchMyReservations = async () => {
     try {
-      await api.post("/api/reservations", {
-        reservation_date: form.reservation_date,
-        reservation_time: form.reservation_time,
-        party_size: Number(form.party_size),
-        table_number: Number(form.table_number),
+      setLoadingReservations(true);
+      const res = await axios.get('http://localhost:3000/api/reservations/my-reservations', {
+        withCredentials: true,
       });
-      await loadMyReservations();
-      setForm((p) => ({ ...p, reservation_time: "" }));
-    } catch (e2) {
-      setError(e2.response?.data?.message || "Failed to create reservation");
+      setMyReservations(res.data.reservations || []);
+      setReservationsError('');
+    } catch (err) {
+      setReservationsError(
+        err.response?.data?.message || 'Failed to load your reservations.'
+      );
+      console.error('Error fetching reservations:', err);
+    } finally {
+      setLoadingReservations(false);
     }
   };
 
-  const cancelReservation = async (reservationId) => {
-    setError("");
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    setAvailabilityError('');
+    setAvailableTables([]);
+    setReservedTables([]);
+    setSelectedTable(null);
+    setCreateMessage('');
+  };
+
+  const handleCheckAvailability = async (e) => {
+    e.preventDefault();
+    setAvailabilityError('');
+    setCreateMessage('');
+
+    const { reservation_date, reservation_time } = formData;
+
+    if (!reservation_date || !reservation_time) {
+      setAvailabilityError('Please select both date and time.');
+      return;
+    }
+
     try {
-      await api.patch(`/api/reservations/${reservationId}/cancel`);
-      await loadMyReservations();
-    } catch (e) {
-      setError(e.response?.data?.message || "Failed to cancel reservation");
+      setCheckingTables(true);
+      const res = await axios.get(
+        'http://localhost:3000/api/reservations/available-tables',
+        {
+          params: {
+            reservation_date,
+            reservation_time,
+          },
+          withCredentials: true,
+        }
+      );
+
+      setAvailableTables(res.data.availableTables || []);
+      setReservedTables(res.data.reservedTables || []);
+
+      if (!res.data.availableTables || res.data.availableTables.length === 0) {
+        setAvailabilityError('No tables are available for this date and time.');
+      }
+    } catch (err) {
+      setAvailabilityError(
+        err.response?.data?.message || 'Failed to check table availability.'
+      );
+      console.error('Error checking availability:', err);
+    } finally {
+      setCheckingTables(false);
+    }
+  };
+
+  const handleCreateReservation = async (e) => {
+    e.preventDefault();
+    setCreateMessage('');
+
+    const { reservation_date, reservation_time, party_size } = formData;
+
+    if (!reservation_date || !reservation_time || !party_size) {
+      setCreateMessage('Please fill in all fields.');
+      return;
+    }
+
+    if (!selectedTable) {
+      setCreateMessage('Please select a table from the available ones.');
+      return;
+    }
+
+    try {
+      setCreatingReservation(true);
+      const res = await axios.post(
+        'http://localhost:3000/api/reservations',
+        {
+          reservation_date,
+          reservation_time,
+          party_size: Number(party_size),
+          table_number: selectedTable,
+        },
+        { withCredentials: true }
+      );
+
+      setCreateMessage('Reservation created successfully!');
+      setFormData({
+        reservation_date: '',
+        reservation_time: '',
+        party_size: '',
+      });
+      setAvailableTables([]);
+      setReservedTables([]);
+      setSelectedTable(null);
+      await fetchMyReservations();
+    } catch (err) {
+      setCreateMessage(
+        err.response?.data?.message || 'Failed to create reservation.'
+      );
+      console.error('Error creating reservation:', err);
+    } finally {
+      setCreatingReservation(false);
+    }
+  };
+
+  const handleCancelReservation = async (reservation) => {
+    if (!window.confirm('Are you sure you want to cancel this reservation?')) {
+      return;
+    }
+
+    try {
+      await axios.patch(
+        `http://localhost:3000/api/reservations/${reservation.reservation_id}/cancel`,
+        {},
+        { withCredentials: true }
+      );
+      await fetchMyReservations();
+    } catch (err) {
+      console.error('Error cancelling reservation:', err);
+      alert(
+        err.response?.data?.message || 'Failed to cancel reservation. Please try again.'
+      );
     }
   };
 
   return (
     <div className="page">
-      <nav className="navbar">
-        <div className="brand" onClick={() => navigate("/")}>YallaEat</div>
-        <div className="nav-links">
-          <button className="nav-link" onClick={() => navigate("/menu")}>Menu</button>
-          <button className="nav-link" onClick={() => navigate("/orders")}>Orders</button>
-          <button className="nav-link active" onClick={() => navigate("/reservations")}>
-            Reservations
-          </button>
-          <button className="cta" onClick={() => navigate("/profile")}>Profile</button>
-        </div>
-      </nav>
+      <div className="reservations-page">
+        <section className="reservation-form-section">
+          <h2>Create a Reservation</h2>
+          <p className="reservation-subtitle">
+            Choose your preferred date and time, check available tables, and confirm your booking.
+          </p>
 
-      <section className="hero">
-        <div className="hero-text">
-          <span className="eyebrow">Reservations</span>
-          <h1>Book a table</h1>
-          <p className="sub">Create, view, and cancel your reservations.</p>
-        </div>
-      </section>
+          <form className="reservation-form" onSubmit={handleCreateReservation}>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="reservation_date">Date</label>
+                <input
+                  type="date"
+                  id="reservation_date"
+                  name="reservation_date"
+                  value={formData.reservation_date}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
 
-      <div style={{ padding: "0 28px 60px", maxWidth: 900, margin: "0 auto" }}>
-        {error && <div className="error-message">{error}</div>}
+              <div className="form-group">
+                <label htmlFor="reservation_time">Time</label>
+                <input
+                  type="time"
+                  id="reservation_time"
+                  name="reservation_time"
+                  value={formData.reservation_time}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
 
-        <div
-          style={{
-            padding: 16,
-            border: "1px solid #eee",
-            borderRadius: 14,
-            background: "#fff",
-            marginBottom: 18,
-          }}
-        >
-          <h3 style={{ marginTop: 0 }}>Create reservation</h3>
-          <form onSubmit={createReservation} style={{ display: "grid", gap: 12 }}>
-            <label style={{ display: "grid", gap: 6 }}>
-              <span>Date</span>
-              <input
-                type="date"
-                name="reservation_date"
-                value={form.reservation_date}
-                onChange={onChange}
-                required
-                style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }}
-              />
-            </label>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="party_size">Party Size</label>
+                <input
+                  type="number"
+                  id="party_size"
+                  name="party_size"
+                  min="1"
+                  max="10"
+                  value={formData.party_size}
+                  onChange={handleInputChange}
+                  placeholder="Number of guests"
+                  required
+                />
+              </div>
 
-            <label style={{ display: "grid", gap: 6 }}>
-              <span>Time</span>
-              <input
-                type="time"
-                name="reservation_time"
-                value={form.reservation_time}
-                onChange={onChange}
-                required
-                style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }}
-              />
-            </label>
+              <div className="form-group">
+                <label>Check Tables</label>
+                <button
+                  className="check-btn"
+                  type="button"
+                  onClick={handleCheckAvailability}
+                  disabled={checkingTables}
+                >
+                  {checkingTables ? 'Checking...' : 'Check Availability'}
+                </button>
+              </div>
+            </div>
 
-            <label style={{ display: "grid", gap: 6 }}>
-              <span>Party size</span>
-              <input
-                type="number"
-                min="1"
-                name="party_size"
-                value={form.party_size}
-                onChange={onChange}
-                required
-                style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }}
-              />
-            </label>
+            {availabilityError && (
+              <div className="error-message reservation-error">
+                {availabilityError}
+              </div>
+            )}
 
-            <label style={{ display: "grid", gap: 6 }}>
-              <span>Table number (1-10)</span>
-              <input
-                type="number"
-                min="1"
-                max="10"
-                name="table_number"
-                value={form.table_number}
-                onChange={onChange}
-                required
-                style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }}
-              />
-            </label>
+            {availableTables.length > 0 && (
+              <div className="tables-section">
+                <h3>Select a Table</h3>
+                <p className="tables-subtitle">
+                  Available tables for the selected date and time are highlighted.
+                </p>
+                <div className="tables-grid">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((table) => {
+                    const isAvailable = availableTables.includes(table);
+                    const isReserved = reservedTables.includes(table);
+                    const isSelected = selectedTable === table;
 
-            <button className="cta" type="submit">Create</button>
-          </form>
-        </div>
-
-        <h3>My reservations</h3>
-        {loading ? (
-          <p>Loading...</p>
-        ) : myReservations.length === 0 ? (
-          <p>No reservations yet.</p>
-        ) : (
-          <div style={{ display: "grid", gap: 12 }}>
-            {myReservations.map((r) => (
-              <div
-                key={r._id}
-                style={{
-                  padding: 14,
-                  border: "1px solid #eee",
-                  borderRadius: 14,
-                  background: "#fff",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                  <div>
-                    <div style={{ fontWeight: 700 }}>
-                      {r.reservation_date} {r.reservation_time}
-                    </div>
-                    <div style={{ color: "#666" }}>
-                      Party: {r.party_size} • Table: {r.table_number}
-                    </div>
-                  </div>
-                  <div style={{ fontWeight: 700 }}>{r.status}</div>
-                </div>
-
-                <div style={{ marginTop: 10 }}>
-                  <button
-                    className="nav-link"
-                    onClick={() => cancelReservation(r.reservation_id || r._id)}
-                    disabled={r.status === "cancelled"}
-                  >
-                    Cancel
-                  </button>
+                    return (
+                      <button
+                        key={table}
+                        type="button"
+                        className={[
+                          'table-card',
+                          isAvailable ? 'available' : '',
+                          isReserved ? 'reserved' : '',
+                          isSelected ? 'selected' : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                        disabled={!isAvailable}
+                        onClick={() => setSelectedTable(table)}
+                      >
+                        <span className="table-number">Table {table}</span>
+                        <span className="table-status">
+                          {isAvailable
+                            ? isSelected
+                              ? 'Selected'
+                              : 'Available'
+                            : 'Unavailable'}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            ))}
+            )}
+
+            {createMessage && (
+              <div className="create-message">
+                {createMessage}
+              </div>
+            )}
+
+            <div className="form-actions">
+              <button
+                type="submit"
+                className="save-btn"
+                disabled={creatingReservation}
+              >
+                {creatingReservation ? 'Creating...' : 'Confirm Reservation'}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section className="my-reservations-section">
+          <div className="section-header">
+            <h2>My Reservations</h2>
           </div>
-        )}
+
+          {loadingReservations ? (
+            <div className="loading-container">
+              <p>Loading your reservations...</p>
+            </div>
+          ) : reservationsError ? (
+            <div className="error-container">
+              <p className="error-message">{reservationsError}</p>
+            </div>
+          ) : myReservations.length === 0 ? (
+            <div className="empty-container">
+              <p>You have no reservations yet.</p>
+            </div>
+          ) : (
+            <div className="reservations-list">
+              {myReservations.map((reservation) => (
+                <div key={reservation._id} className="reservation-card">
+                  <div className="reservation-main">
+                    <div className="reservation-row">
+                      <span className="reservation-label">Date</span>
+                      <span className="reservation-value">
+                        {reservation.reservation_date}
+                      </span>
+                    </div>
+                    <div className="reservation-row">
+                      <span className="reservation-label">Time</span>
+                      <span className="reservation-value">
+                        {reservation.reservation_time}
+                      </span>
+                    </div>
+                    <div className="reservation-row">
+                      <span className="reservation-label">Table</span>
+                      <span className="reservation-value">
+                        {reservation.table_number}
+                      </span>
+                    </div>
+                    <div className="reservation-row">
+                      <span className="reservation-label">Party Size</span>
+                      <span className="reservation-value">
+                        {reservation.party_size}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="reservation-footer">
+                    <span
+                      className={[
+                        'status-badge',
+                        reservation.status,
+                      ].join(' ')}
+                    >
+                      {reservation.status}
+                    </span>
+
+                    {reservation.status === 'pending' && (
+                      <button
+                        className="cancel-res-btn"
+                        onClick={() => handleCancelReservation(reservation)}
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );
-}
+};
+
+export default Reservations;
 
 

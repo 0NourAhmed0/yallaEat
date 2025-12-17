@@ -28,22 +28,17 @@ exports.createPaymentIntent = async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "usd",
-      payment_method_types: ["card"],     // only card
-      confirm: true,                       // CAREFULLLLLLL this will change to false when we do front end , do NOT forget!!!!!!
-      payment_method: "pm_card_visa",  
-        metadata: {
+      payment_method_types: ["card"],
+      confirm: false,  // Frontend will confirm with card details
+      metadata: {
         orderId: order._id.toString(),
         userId: req.user._id.toString(),
       },
-      // automatic_payment_methods: {
-      // enabled: true,
-      // allow_redirects: "never",
-   // },
-
     });
 
     res.status(200).json({
       clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
       amount: order.totalPrice,
     });
 
@@ -109,4 +104,23 @@ if (event.type === "payment_intent.succeeded") {
 
 
   res.json({ received: true });
+};
+
+/**
+ * Get Stripe account info (debug)
+ * GET /api/payments/account
+ */
+exports.accountInfo = async (req, res) => {
+  try {
+    const account = await stripe.accounts.retrieve();
+    res.json({
+      id: account.id,
+      email: account.email || null,
+      display_name: account.settings?.dashboard?.display_name || null,
+      livemode: account.livemode,
+    });
+  } catch (error) {
+    console.error("Stripe Account Info Error:", error);
+    res.status(500).json({ message: error.message });
+  }
 };

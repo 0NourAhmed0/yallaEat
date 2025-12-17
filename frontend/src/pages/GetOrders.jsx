@@ -54,26 +54,6 @@ const GetOrders = () => {
 
   return (
     <div className="page">
-      <nav className="navbar">
-        <div className="brand" onClick={() => navigate('/')}>
-          YallaEat
-        </div>
-        <div className="nav-links">
-          <button className="nav-link" onClick={() => navigate('/')}>
-            Home
-          </button>
-          <button className="nav-link" onClick={() => navigate('/menu')}>
-            Menu
-          </button>
-          <button className="nav-link active" onClick={() => navigate('/orders')}>
-            My Orders
-          </button>
-          <button className="cta" onClick={() => navigate('/menu')}>
-            Browse Menu
-          </button>
-        </div>
-      </nav>
-
       <section className="hero">
         <div className="hero-text">
           <span className="eyebrow">My Orders</span>

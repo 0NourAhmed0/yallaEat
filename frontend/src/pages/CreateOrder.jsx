@@ -1,35 +1,48 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { api } from "../api/client";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import { getCart, clearCart } from '../utils/cart';
+import StripePaymentForm from '../components/StripePaymentForm';
 import '../styles/CreateOrder.css';
+
+// Read Stripe publishable key from Vite env (must start with pk_test_ or pk_live_)
+// Set VITE_STRIPE_PUBLISHABLE_KEY in frontend/.env and restart dev server
+const STRIPE_PK = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+if (!STRIPE_PK) {
+  // Do not throw; allow app to render and show guidance in payment step
+  // eslint-disable-next-line no-console
+  console.warn('VITE_STRIPE_PUBLISHABLE_KEY is not set. Stripe payment form will be disabled.');
+}
+const stripePromise = STRIPE_PK ? loadStripe(STRIPE_PK) : null;
 
 const CreateOrder = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const menuItem = location.state?.menuItem; // Get the menu item passed from Menu page
+  const cartItems = getCart();
 
   const [formData, setFormData] = useState({
-    items: menuItem ? [{ menuItem: menuItem._id, quantity: 1 }] : [],
+    items: cartItems.map(item => ({ menuItem: item.id, quantity: item.qty })),
     paymentMethod: 'Cash',
     isDelivery: false
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [paymentStep, setPaymentStep] = useState('form'); // 'form' or 'payment'
+  const [stripePaymentId, setStripePaymentId] = useState(null);
+  const [clientSecret, setClientSecret] = useState('');
+  const [paymentIntentId, setPaymentIntentId] = useState('');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
-  const handleQuantityChange = (e) => {
-    const quantity = parseInt(e.target.value) || 1;
-    setFormData(prev => ({
-      ...prev,
-      items: [{ ...prev.items[0], quantity }]
-    }));
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      };
+      console.log('Form data updated:', updated); // Debug log
+      return updated;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -37,118 +50,234 @@ const CreateOrder = () => {
     setError('');
     setLoading(true);
 
-    try {
-      const response = await api.post(
-        '/api/orders',
-        formData,
-        { withCredentials: true }
-      );
+    console.log('Submitting order with paymentMethod:', formData.paymentMethod); // Debug log
 
-      if (response.data.success) {
-        alert(`Order placed successfully! Order Number: ${response.data.order.orderNumber}`);
-        navigate('/orders'); // Redirect to orders page
+    try {
+      // If payment method is Stripe, create payment intent first
+      if (formData.paymentMethod === 'Stripe') {
+        // First create order in pending payment status
+        const orderResponse = await axios.post(
+          'http://localhost:3000/api/orders',
+          formData,
+          { withCredentials: true }
+        );
+
+        if (orderResponse.data.success) {
+          const orderId = orderResponse.data.order._id;
+          setStripePaymentId(orderId);
+          
+          // Create payment intent
+          const paymentResponse = await axios.post(
+            'http://localhost:3000/api/payments/create-payment-intent',
+            { orderId },
+            { withCredentials: true }
+          );
+          
+          if (paymentResponse.data.clientSecret) {
+            setClientSecret(paymentResponse.data.clientSecret);
+            if (paymentResponse.data.paymentIntentId) {
+              setPaymentIntentId(paymentResponse.data.paymentIntentId);
+              console.info('Stripe PaymentIntent ID:', paymentResponse.data.paymentIntentId);
+            }
+            setPaymentStep('payment');
+          }
+          setLoading(false);
+          return;
+        }
+      } else {
+        // For Cash, Credit Card, Debit Card - create order directly
+        const response = await axios.post(
+          'http://localhost:3000/api/orders',
+          formData,
+          { withCredentials: true }
+        );
+
+        if (response.data.success) {
+          clearCart();
+          alert(`Order placed successfully! Order Number: ${response.data.order.orderNumber}`);
+          navigate('/orders');
+        }
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create order');
       console.error('Order creation error:', err);
+      setLoading(false);
+    }
+  };
+
+  const handleStripePayment = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      // Create payment intent with the order ID
+      const paymentResponse = await axios.post(
+        'http://localhost:3000/api/payments/create-payment-intent',
+        { orderId: stripePaymentId },
+        { withCredentials: true }
+      );
+
+      if (paymentResponse.data.clientSecret) {
+        setClientSecret(paymentResponse.data.clientSecret);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to process payment. Please try again or use a different payment method.');
+      console.error('Payment error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (!menuItem) {
+  const handlePaymentSuccess = (paymentIntent) => {
+    console.log('Payment successful:', paymentIntent);
+    clearCart();
+    alert('Payment successful! Your order has been confirmed.');
+    navigate('/orders');
+  };
+
+  const handlePaymentError = (errorMessage) => {
+    setError(errorMessage);
+  };
+
+  const handlePaymentCancel = () => {
+    setPaymentStep('form');
+    setClientSecret('');
+    setStripePaymentId(null);
+  };
+
+  if (cartItems.length === 0) {
     return (
-      <div className="order-container">
-        <div className="order-card">
-          <h2>No Item Selected</h2>
-          <p className="order-subtitle">Please select an item from the menu first.</p>
-          <button 
-            className="order-btn" 
-            onClick={() => navigate('/menu')}
-          >
-            Go to Menu
-          </button>
+      <div className="page">
+        <div className="order-container">
+          <div className="order-card">
+            <h2>Your Cart is Empty</h2>
+            <p className="order-subtitle">Add items from the menu to proceed with checkout.</p>
+            <button 
+              className="order-btn" 
+              onClick={() => navigate('/menu')}
+            >
+              Back to Menu
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="order-container">
-      <div className="order-card">
-        <h2>Create Order</h2>
-        <p className="order-subtitle">Review your order details below</p>
+  const total = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-        {/* Order Item Summary */}
-        <div className="order-item-summary">
-          <div className="order-item-details">
-            <h3>{menuItem.name}</h3>
-            <p>{menuItem.description}</p>
-            <p className="order-item-price">${menuItem.price?.toFixed(2)}</p>
+  // Payment step for Stripe
+  if (paymentStep === 'payment' && clientSecret) {
+    return (
+      <div className="page">
+        <div className="order-container">
+          <div className="order-card">
+            <h2>Complete Your Payment</h2>
+            <p className="order-subtitle">Order ID: {stripePaymentId}</p>
+
+            {error && <div className="error-message">{error}</div>}
+
+            {!stripePromise ? (
+              <div className="error-message">
+                Stripe is not configured. Please set VITE_STRIPE_PUBLISHABLE_KEY in frontend/.env
+                and restart the dev server.
+              </div>
+            ) : (
+              <Elements stripe={stripePromise}>
+                <div className="payment-info" style={{ marginBottom: 12 }}>
+                  <p><strong>Publishable Key:</strong> {STRIPE_PK ? (STRIPE_PK.slice(0, 12) + '…') : 'not set'}</p>
+                </div>
+                {paymentIntentId && (
+                  <div className="payment-info" style={{ marginBottom: 12 }}>
+                    <p><strong>PaymentIntent:</strong> {paymentIntentId}</p>
+                  </div>
+                )}
+                <StripePaymentForm
+                  clientSecret={clientSecret}
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                  onCancel={handlePaymentCancel}
+                  amount={total}
+                />
+              </Elements>
+            )}
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {error && <div className="error-message">{error}</div>}
+  // Form step
+  return (
+    <div className="page">
+      <div className="order-container">
+        <div className="order-card">
+          <h2>Review Your Order</h2>
+          <p className="order-subtitle">Please review your items and select payment method</p>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="quantity">Quantity</label>
-            <input
-              type="number"
-              id="quantity"
-              name="quantity"
-              min="1"
-              value={formData.items[0]?.quantity || 1}
-              onChange={handleQuantityChange}
-              required
-            />
+          {/* Order Items Summary */}
+          <div className="order-items-list">
+            {cartItems.map((item) => (
+              <div key={item.id} className="order-item-row">
+                <div className="order-item-info">
+                  <h4>{item.name}</h4>
+                  <p className="order-item-category">{item.category}</p>
+                </div>
+                <div className="order-item-price-qty">
+                  <span className="qty-badge">{item.qty}x</span>
+                  <span className="item-price">${item.price?.toFixed(2)}</span>
+                  <span className="item-total">${(item.price * item.qty)?.toFixed(2)}</span>
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="paymentMethod">Payment Method</label>
-            <select
-              id="paymentMethod"
-              name="paymentMethod"
-              value={formData.paymentMethod}
-              onChange={handleChange}
-              required
-            >
-              <option value="Cash">Cash</option>
-              <option value="Credit Card">Credit Card</option>
-              <option value="Debit Card">Debit Card</option>
-            </select>
-          </div>
+          {error && <div className="error-message">{error}</div>}
 
-          <div className="form-group checkbox-group">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                name="isDelivery"
-                checked={formData.isDelivery}
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="paymentMethod">Payment Method</label>
+              <select
+                id="paymentMethod"
+                name="paymentMethod"
+                value={formData.paymentMethod}
                 onChange={handleChange}
-              />
-              <span>Request Delivery</span>
-            </label>
+                required
+              >
+                <option value="Cash">Cash on Delivery</option>
+                <option value="Stripe">Stripe (Secure Online Payment)</option>
+              </select>
+            </div>
+
+            <div className="form-group checkbox-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="isDelivery"
+                  checked={formData.isDelivery}
+                  onChange={handleChange}
+                />
+                <span>Request Delivery</span>
+              </label>
+            </div>
+
+            <div className="order-total">
+              <span>Total:</span>
+              <span className="total-price">${total.toFixed(2)}</span>
+            </div>
+
+            <button 
+              type="submit" 
+              className="order-btn" 
+              disabled={loading}
+            >
+              {loading ? 'Processing...' : formData.paymentMethod === 'Stripe' ? 'Proceed to Payment' : 'Place Order'}
+            </button>
+          </form>
+
+          <div className="back-link">
+            <a onClick={() => navigate('/cart')}>← Back to Cart</a>
           </div>
-
-          <div className="order-total">
-            <span>Total:</span>
-            <span className="total-price">
-              ${((menuItem.price || 0) * (formData.items[0]?.quantity || 1)).toFixed(2)}
-            </span>
-          </div>
-
-          <button 
-            type="submit" 
-            className="order-btn" 
-            disabled={loading}
-          >
-            {loading ? 'Placing Order...' : 'Place Order'}
-          </button>
-        </form>
-
-        <div className="back-link">
-          <a onClick={() => navigate('/menu')}>← Back to Menu</a>
         </div>
       </div>
     </div>
