@@ -6,32 +6,36 @@ import { MemoryRouter } from "react-router-dom";
 // Import the component we're testing
 import Menu from "./Menu";
 
-// Create a mock function to simulate API calls
-// We don't want to make real HTTP requests in tests, so we fake them
-const getMock = vi.fn();
-
-// Mock the API client module (pretend to be the axios API calls)
+// Mock the api client module that Menu.jsx imports
 vi.mock("../api/client", () => ({
   api: {
-    get: (...args) => getMock(...args), // When api.get() is called, use our mock
+    get: vi.fn(),
   },
 }));
 
 // Test suite for Menu page component
 describe("Menu page", () => {
-  // Before each test, reset the mock function (clean slate)
+  // Before each test, reset all mocks (clean slate)
   beforeEach(() => {
-    getMock.mockReset();
+    vi.clearAllMocks();
   });
 
-  // Test: Check if Menu page loads and displays menu items correctly
+  // User Story: As a customer, I want to view the menu items so that I can decide what to order
   test("loads and renders menu items from API", async () => {
-    // Step 1: Tell the mock API to return fake menu data
+    const { api } = await import("../api/client");
+    // Step 1: Tell the mock api to return fake menu data
     // This simulates what the backend would return
-    getMock.mockResolvedValueOnce({
+    api.get.mockResolvedValueOnce({
       data: { 
         success: true, 
-        items: [{ _id: "1", name: "Burger", price: 50, description: "Tasty" }] 
+        items: [{ 
+          _id: "1", 
+          name: "Burger", 
+          price: 50, 
+          description: "Tasty",
+          category: "Main",
+          imageUrl: "/images/burger.jpg"
+        }] 
       },
     });
 
@@ -50,5 +54,35 @@ describe("Menu page", () => {
     // Step 4: Verify that "Burger" appears on screen
     // This means the menu item from our fake API data was displayed correctly
     expect(screen.getByText(/Burger/i)).toBeInTheDocument();
+    
+    // Step 5: Verify price is displayed correctly
+    expect(screen.getByText(/\$50\.00/i)).toBeInTheDocument();
+    
+    // Step 6: Verify "Add to Cart" button is present
+    expect(screen.getByText(/Add to Cart/i)).toBeInTheDocument();
+  });
+
+  // Test: Check if error state displays correctly when API fails
+  test("displays error message when API call fails", async () => {
+    const { api } = await import("../api/client");
+    // Step 1: Mock api to reject with an error
+    api.get.mockRejectedValueOnce({
+      response: {
+        data: { message: "Server error" }
+      }
+    });
+
+    // Step 2: Render the component
+    render(
+      <MemoryRouter>
+        <Menu />
+      </MemoryRouter>
+    );
+
+    // Step 3: Wait for error message to appear
+    expect(await screen.findByText(/Server error/i)).toBeInTheDocument();
+    
+    // Step 4: Verify "Try Again" button is present
+    expect(screen.getByText(/Try Again/i)).toBeInTheDocument();
   });
 });

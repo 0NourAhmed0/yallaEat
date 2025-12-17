@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../api/client';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { getCart, clearCart } from '../utils/cart';
@@ -56,10 +56,9 @@ const CreateOrder = () => {
       // If payment method is Stripe, create payment intent first
       if (formData.paymentMethod === 'Stripe') {
         // First create order in pending payment status
-        const orderResponse = await axios.post(
-          'http://localhost:3000/api/orders',
-          formData,
-          { withCredentials: true }
+        const orderResponse = await api.post(
+          '/api/orders',
+          formData
         );
 
         if (orderResponse.data.success) {
@@ -67,10 +66,9 @@ const CreateOrder = () => {
           setStripePaymentId(orderId);
           
           // Create payment intent
-          const paymentResponse = await axios.post(
-            'http://localhost:3000/api/payments/create-payment-intent',
-            { orderId },
-            { withCredentials: true }
+          const paymentResponse = await api.post(
+            '/api/payments/create-payment-intent',
+            { orderId }
           );
           
           if (paymentResponse.data.clientSecret) {
@@ -86,10 +84,9 @@ const CreateOrder = () => {
         }
       } else {
         // For Cash, Credit Card, Debit Card - create order directly
-        const response = await axios.post(
-          'http://localhost:3000/api/orders',
-          formData,
-          { withCredentials: true }
+        const response = await api.post(
+          '/api/orders',
+          formData
         );
 
         if (response.data.success) {
@@ -111,10 +108,9 @@ const CreateOrder = () => {
 
     try {
       // Create payment intent with the order ID
-      const paymentResponse = await axios.post(
-        'http://localhost:3000/api/payments/create-payment-intent',
-        { orderId: stripePaymentId },
-        { withCredentials: true }
+      const paymentResponse = await api.post(
+        '/api/payments/create-payment-intent',
+        { orderId: stripePaymentId }
       );
 
       if (paymentResponse.data.clientSecret) {
