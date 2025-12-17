@@ -33,6 +33,7 @@ describe("Customer happy path", () => {
     cy.clearAllSessionStorage();
   });
 
+  // User Story: As a customer, I want to view the menu, add items to my cart, and place an order.
   it("logs in, adds menu item to cart, and checks out to create an order", () => {
     cy.visit("/login");
     cy.get('input#email').type(customer.email);
