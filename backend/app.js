@@ -1,3 +1,4 @@
+
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -5,42 +6,75 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const app = express();
 const { webhook } = require("./controllers/paymentController");
-// Middlewares
-//for the online payment stripe
+
+// MongoDB connection
+let dbConnection;
+
+const connectDB = async () => {
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
+  if (!dbConnection) {
+    dbConnection = mongoose
+      .connect(process.env.DB_URL)
+      .catch((error) => {
+        dbConnection = null;
+        console.error("MongoDB connection failed:", error);
+        throw error;
+      });
+  }
+
+  await dbConnection;
+};
+
+// Stripe webhook middleware
 app.use(
   "/api/payments/webhook",
   express.raw({ type: "application/json" })
 );
-//end stripe middleware
+
 app.use(express.json());
 app.use(cookieParser());
+
 app.use(
   cors({
     origin: process.env.ORIGIN,
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"]
-    
   })
 );
 
-//routes
+// Ensure database connection before API requests
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("Database unavailable:", error.message);
+    res.status(503).json({
+      message: "Database connection failed",
+      error: error.message
+    });
+  }
+});
+
+// Routes
 const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes"); // Staff & admin routes
-const menuItemRoutes = require("./routes/menuItemRoutes"); //menuitem routes
-const orderRoutes = require("./routes/orderRoutes"); // order routes
+const userRoutes = require("./routes/userRoutes");
+const menuItemRoutes = require("./routes/menuItemRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
 const reservationRoutes = require("./routes/reservationRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 
 app.post(
   "/api/payments/webhook",
-  express.raw({ type: "application/json" }),  // important!
+  express.raw({ type: "application/json" }),
   webhook
 );
 
-
-//routes middleware
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/menu-items", menuItemRoutes);
@@ -49,31 +83,29 @@ app.use("/api/feedback", feedbackRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/payments", paymentRoutes);
 
-// cache routes
-// const cacheRoutes = require('./routes/cacheRoutes');
-// app.use('/api/admin/cache', cacheRoutes);
-
-
-// endpoint
 app.get("/", (req, res) => {
-  res.send("YallaEat API is running ");
+  res.send("YallaEat API is running");
 });
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// Export the app for testing (Supertest/Jest).
 module.exports = app;
 
-// Only connect & listen when running directly: `node app.js` / `nodemon app.js`
+// Local development
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
-  mongoose
-    .connect(process.env.DB_URL)
+
+  connectDB()
     .then(() => {
-      console.log(" Connected to MongoDB");
-      app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
+      console.log("Connected to MongoDB");
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
     })
-    .catch((err) => console.error("MongoDB connection failed:", err));
+    .catch((err) => {
+      console.error("MongoDB connection failed:", err);
+      process.exit(1);
+    });
 }
